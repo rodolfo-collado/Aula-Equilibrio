@@ -2,6 +2,7 @@ package com.practice.aulaequilibrio.controller;
 
 import com.practice.aulaequilibrio.dao.CatalogDAO;
 import com.practice.aulaequilibrio.dao.CatalogDAOTest;
+import com.practice.aulaequilibrio.service.CatalogService;
 import com.practice.aulaequilibrio.model.Availability;
 import com.practice.aulaequilibrio.view.mdi.MdiDesktop;
 import javafx.application.Platform;
@@ -32,7 +33,7 @@ class CatalogScreenTest {
             var dao = new CatalogDAO(factory);
             Stage stage = fx(() -> {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/practice/aulaequilibrio/views/catalog-view.fxml"));
-                loader.setControllerFactory(type -> new CatalogController(dao));
+                loader.setControllerFactory(type -> new CatalogController(new CatalogService(dao)));
                 Parent catalog = loader.load();
                 root = new MdiDesktop();
                 loader.<CatalogController>getController().attachDesktop(root, CATALOG);

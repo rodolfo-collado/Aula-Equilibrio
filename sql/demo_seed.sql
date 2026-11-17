@@ -19,6 +19,23 @@ BEGIN
         ('DEMO-BD', 'Bases de datos', 2)
     ON CONFLICT (codigo) DO NOTHING;
 
+    INSERT INTO faculty (code, name, active)
+    VALUES ('DEMO-ING', 'Facultad de Ingeniería', true)
+    ON CONFLICT (code) DO NOTHING;
+
+    INSERT INTO career (id_faculty, code, name, active)
+    SELECT faculty.id, 'DEMO-SIS', 'Ingeniería en Sistemas', true
+    FROM faculty WHERE code = 'DEMO-ING'
+    ON CONFLICT (code) DO NOTHING;
+
+    INSERT INTO career_subject (id_career, id_subject, recommended_level)
+    SELECT career.id_career, asignatura.id, plan.level
+    FROM (VALUES ('DEMO-PROG', 1), ('DEMO-MAT', 1), ('DEMO-BD', 2)) AS plan(code, level)
+    JOIN asignatura ON asignatura.codigo = plan.code
+    CROSS JOIN career
+    WHERE career.code = 'DEMO-SIS'
+    ON CONFLICT (id_career, id_subject) DO NOTHING;
+
     INSERT INTO classroom_type (name, revision) VALUES
         ('Demo · Aula teórica', 0),
         ('Demo · Laboratorio', 0)

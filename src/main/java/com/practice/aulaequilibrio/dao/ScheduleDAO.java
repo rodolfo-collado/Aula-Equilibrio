@@ -1,9 +1,12 @@
-package com.practice.aulaequilibrio.repository;
+package com.practice.aulaequilibrio.dao;
 
 import com.practice.aulaequilibrio.config.HibernateUtil;
 import com.practice.aulaequilibrio.model.Classroom;
 import com.practice.aulaequilibrio.model.Groupe;
 import com.practice.aulaequilibrio.model.ScheduleAssignment;
+import com.practice.aulaequilibrio.model.ScheduleData.Catalogs;
+import com.practice.aulaequilibrio.model.ScheduleData.Option;
+import com.practice.aulaequilibrio.model.ScheduleData.Placement;
 import com.practice.aulaequilibrio.model.ScheduleVersion;
 import com.practice.aulaequilibrio.model.Subject;
 import com.practice.aulaequilibrio.model.Teacher;
@@ -14,21 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class ScheduleRepository {
-    public record Option(Integer id, String label) {
-        @Override
-        public String toString() {
-            return label;
-        }
-    }
-
-    public record Catalogs(List<Option> groups, List<Option> subjects, List<Option> teachers, List<Option> classrooms) {
-    }
-
-    public record Placement(int day, int block, Integer groupId, Integer subjectId, Integer teacherId,
-                            Integer classroomId) {
-    }
-
+public class ScheduleDAO {
     public List<ScheduleVersion> listVersions() {
         return HibernateUtil.getSessionFactory().fromTransaction(session ->
                 session.createSelectionQuery("from ScheduleVersion order by createdOn desc, id desc",

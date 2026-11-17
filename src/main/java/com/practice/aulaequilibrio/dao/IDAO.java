@@ -1,4 +1,4 @@
-package com.practice.aulaequilibrio.repository;
+package com.practice.aulaequilibrio.dao;
 
 import com.practice.aulaequilibrio.config.HibernateUtil;
 import lombok.AccessLevel;
@@ -14,7 +14,7 @@ import java.util.function.Function;
  * Operaciones CRUD básicas con Hibernate. Cada método abre y cierra su propia sesión.
  */
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class HibernateRepository<T> {
+public abstract class IDAO<T> {
 
     private final Class<T> type;
     private final Function<T, Integer> idGetter;

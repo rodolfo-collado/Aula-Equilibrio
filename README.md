@@ -12,6 +12,10 @@ Pulsa una ventana interna para traerla al frente. Los avisos, las confirmaciones
 
 ## Ejecutar
 
+Hibernate registra las entidades en `src/main/resources/hibernate.cfg.xml`. La aplicación usa un solo `SessionFactory` y obtiene la conexión de `.env` o de las variables de entorno.
+
+Los modelos y las proyecciones de consulta están en `model`. Los DAO concentran las consultas y transacciones de Hibernate. Los módulos de JavaFX llaman a `service`, que expone las operaciones del dominio y delega la persistencia. Los modelos que se gestionan juntos comparten servicio, como docentes y disponibilidad, aulas y tipos, o facultades, carreras y planes de estudio.
+
 Se requiere JDK 21 y PostgreSQL. Copia `.env.example` a `.env` y configura `DB_URL`, `DB_USER` y `DB_PASSWORD` para una base existente. El usuario de la base debe poder crear/actualizar tablas, como requiere la configuración Hibernate existente.
 
 Importa el `pom.xml` como proyecto Maven en IntelliJ IDEA. Maven configura el procesador de anotaciones de Lombok para generar los métodos y constructores al compilar.
@@ -23,6 +27,8 @@ Si tu base ya contiene aulas de una versión anterior, ejecuta primero `sql/rola
 ```
 
 ## Datos de demostración
+
+La semilla también incluye la Facultad de Ingeniería, la carrera Ingeniería en Sistemas y tres asignaturas en su plan de estudios.
 
 Al abrir la aplicación, Hibernate prepara las tablas y ejecuta `sql/demo_seed.sql` en la base configurada. En una base nueva aparecen tres docentes, tres grupos, tres asignaturas, tres aulas y un horario con seis asignaciones.
 

@@ -1,7 +1,6 @@
 package com.practice.aulaequilibrio.controller;
 
-import com.practice.aulaequilibrio.config.HibernateUtil;
-import com.practice.aulaequilibrio.dao.CatalogDAO;
+import com.practice.aulaequilibrio.service.CatalogService;
 import com.practice.aulaequilibrio.model.Availability;
 import com.practice.aulaequilibrio.model.Teacher;
 import com.practice.aulaequilibrio.util.Dialogs;
@@ -52,7 +51,7 @@ public class CatalogController {
     @FXML private Label availabilityTitle, blockEditorTitle, emptyTeachers, emptyBlocks, status;
     @FXML private Button editTeacherButton, deleteTeacherButton, deleteBlockButton;
 
-    private final CatalogDAO dao;
+    private final CatalogService service;
     private final SimpleBooleanProperty busy = new SimpleBooleanProperty();
     private final ObservableList<Teacher> teacherRows = FXCollections.observableArrayList();
     private final ObservableList<Availability> blockRows = FXCollections.observableArrayList();
@@ -63,7 +62,7 @@ public class CatalogController {
     private boolean refreshingTeachers;
 
     public CatalogController() {
-        this(new CatalogDAO(HibernateUtil.getSessionFactory()));
+        this(new CatalogService());
     }
 
     public void attachDesktop(MdiDesktop desktop, String moduleTitle) {
@@ -92,7 +91,7 @@ public class CatalogController {
             if (!refreshingTeachers) {
                 showBlocks(teacher, List.of());
                 if (teacher != null) {
-                    run("Disponibilidad actualizada.", () -> dao.listAvailability(teacher.getId()),
+                    run("Disponibilidad actualizada.", () -> service.listAvailability(teacher.getId()),
                             result -> showBlocks(teacher, result), this::message);
                 }
             }
@@ -224,7 +223,7 @@ public class CatalogController {
             String enteredEmail = email.getText();
             Integer id = editing ? teacher.getId() : null;
             feedback.setText("");
-            run("Docente guardado.", () -> dao.saveTeacher(id, enteredName, enteredEmail), saved -> {
+            run("Docente guardado.", () -> service.saveTeacher(id, enteredName, enteredEmail), saved -> {
                 updateTeacherRow(saved);
                 if (catalogs.getScene() != null) {
                     desktop.close(TEACHER_FORM);
@@ -253,7 +252,7 @@ public class CatalogController {
         if (teacher != null) {
             Dialogs.confirm(catalogs, "Eliminar docente", "¿Eliminar al docente «" + teacher.getName() + "»?",
                     () -> run("Docente eliminado.", () -> {
-                dao.deleteTeacher(teacher.getId());
+                service.deleteTeacher(teacher.getId());
                 return teacher;
             }, removed -> {
                 refreshingTeachers = true;
@@ -287,7 +286,7 @@ public class CatalogController {
             message("El número de bloque debe ser un entero mayor que cero.");
             return;
         }
-        run("Bloque guardado.", () -> dao.saveAvailability(id, owner.getId(), dayValue, number), saved -> {
+        run("Bloque guardado.", () -> service.saveAvailability(id, owner.getId(), dayValue, number), saved -> {
             blocks.getSelectionModel().clearSelection();
             blockRows.removeIf(block -> Objects.equals(block.getId(), saved.getId()));
             blockRows.add(saved);
@@ -304,7 +303,7 @@ public class CatalogController {
         if (block != null) {
             Dialogs.confirm(catalogs, "Eliminar bloque", "¿Eliminar el bloque seleccionado?",
                     () -> run("Bloque eliminado.", () -> {
-                dao.deleteAvailability(block.getId());
+                service.deleteAvailability(block.getId());
                 return block;
             }, removed -> {
                 blocks.getSelectionModel().clearSelection();
@@ -317,7 +316,7 @@ public class CatalogController {
     @FXML private void reload() {
         Teacher selected = teachers.getSelectionModel().getSelectedItem();
         Integer selectedId = selected == null ? null : selected.getId();
-        run("Docentes actualizados.", dao::listTeachers, items -> {
+        run("Docentes actualizados.", service::listTeachers, items -> {
             refreshingTeachers = true;
             teacherRows.setAll(items);
             teachers.getSelectionModel().clearSelection();

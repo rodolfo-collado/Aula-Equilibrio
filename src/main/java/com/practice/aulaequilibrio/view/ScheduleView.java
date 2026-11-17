@@ -2,9 +2,9 @@ package com.practice.aulaequilibrio.view;
 
 import com.practice.aulaequilibrio.model.ScheduleAssignment;
 import com.practice.aulaequilibrio.model.ScheduleVersion;
-import com.practice.aulaequilibrio.repository.ScheduleRepository;
-import com.practice.aulaequilibrio.repository.ScheduleRepository.Option;
-import com.practice.aulaequilibrio.repository.ScheduleRepository.Placement;
+import com.practice.aulaequilibrio.service.ScheduleService;
+import com.practice.aulaequilibrio.model.ScheduleData.Option;
+import com.practice.aulaequilibrio.model.ScheduleData.Placement;
 import com.practice.aulaequilibrio.util.Dialogs;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -32,7 +32,7 @@ public class ScheduleView extends BorderPane {
             "/com/practice/aulaequilibrio/styles/aula.css").toExternalForm();
     private static final Option ALL_GROUPS = new Option(null, "Todos los grupos");
 
-    private final ScheduleRepository repository = new ScheduleRepository();
+    private final ScheduleService service = new ScheduleService();
     private final ComboBox<ScheduleVersion> versions = new ComboBox<>();
     private final ComboBox<Option> groups = new ComboBox<>();
     private final TableView<ScheduleAssignment> table = new TableView<>();
@@ -105,7 +105,7 @@ public class ScheduleView extends BorderPane {
 
     private void reload(Integer versionId) {
         Integer groupId = selectedId(groups);
-        List<Option> options = repository.listCatalogs().groups();
+        List<Option> options = service.listCatalogs().groups();
         groups.getItems().setAll(ALL_GROUPS);
         groups.getItems().addAll(options);
         select(groups, groupId);
@@ -116,7 +116,7 @@ public class ScheduleView extends BorderPane {
     }
 
     private void reloadVersions(Integer versionId) {
-        List<ScheduleVersion> available = repository.listVersions();
+        List<ScheduleVersion> available = service.listVersions();
         versions.getItems().setAll(available);
         versions.setValue(available.stream()
                 .filter(version -> version.getId().equals(versionId))
@@ -134,14 +134,14 @@ public class ScheduleView extends BorderPane {
         table.getItems().clear();
         Integer versionId = selectedVersionId();
         if (versionId != null) {
-            runAction(() -> table.getItems().setAll(repository.listAssignments(versionId, selectedId(groups))));
+            runAction(() -> table.getItems().setAll(service.listAssignments(versionId, selectedId(groups))));
         }
     }
 
     private void versionDialog(ScheduleVersion version) {
         TextField name = new TextField(version == null ? "" : version.getName());
         showEditor(version == null ? "Nueva versión" : "Renombrar versión", form("Nombre", name), () -> {
-            int id = repository.saveVersion(version == null ? null : version.getId(), name.getText());
+            int id = service.saveVersion(version == null ? null : version.getId(), name.getText());
             runAction(() -> reloadVersions(id));
         });
     }
@@ -150,14 +150,14 @@ public class ScheduleView extends BorderPane {
         ScheduleVersion version = versions.getValue();
         Dialogs.confirm(this, "Eliminar versión", "¿Eliminar la versión «" + version.getName() + "»?",
                 () -> runAction(() -> {
-                    repository.deleteVersion(version.getId());
+                    service.deleteVersion(version.getId());
                     reloadVersions(null);
                 }));
     }
 
     private void assignmentDialog(ScheduleAssignment assignment) {
         int versionId = selectedVersionId();
-        var catalogs = repository.listCatalogs();
+        var catalogs = service.listCatalogs();
         if (catalogs.groups().isEmpty() || catalogs.subjects().isEmpty()
                 || catalogs.teachers().isEmpty() || catalogs.classrooms().isEmpty()) {
             throw new IllegalArgumentException("Registra al menos un grupo, una asignatura, un docente y un aula "
@@ -194,7 +194,7 @@ public class ScheduleView extends BorderPane {
         showEditor(assignment == null ? "Nueva asignación" : "Editar asignación", fields, () -> {
             Placement placement = new Placement(day.getValue().getValue(), readBlock(block.getText()),
                     selectedId(group), selectedId(subject), selectedId(teacher), selectedId(classroom));
-            repository.saveAssignment(versionId, assignment == null ? null : assignment.getId(), placement);
+            service.saveAssignment(versionId, assignment == null ? null : assignment.getId(), placement);
             refreshAssignments();
         });
     }
@@ -204,7 +204,7 @@ public class ScheduleView extends BorderPane {
         int versionId = selectedVersionId();
         Dialogs.confirm(this, "Eliminar asignación", "¿Eliminar la asignación seleccionada?",
                 () -> runAction(() -> {
-                    repository.deleteAssignment(versionId, assignment.getId());
+                    service.deleteAssignment(versionId, assignment.getId());
                     refreshAssignments();
                 }));
     }

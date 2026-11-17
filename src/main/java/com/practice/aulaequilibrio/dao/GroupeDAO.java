@@ -1,12 +1,12 @@
-package com.practice.aulaequilibrio.repository;
+package com.practice.aulaequilibrio.dao;
 
 import com.practice.aulaequilibrio.model.Groupe;
 
 import java.util.List;
 
-public class GroupeRepository extends HibernateRepository<Groupe> {
+public class GroupeDAO extends IDAO<Groupe> {
 
-    public GroupeRepository() {
+    public GroupeDAO() {
         super(Groupe.class, Groupe::getId);
     }
 

@@ -1,5 +1,6 @@
 package com.practice.aulaequilibrio.dao;
 
+import com.practice.aulaequilibrio.config.HibernateUtil;
 import com.practice.aulaequilibrio.model.Availability;
 import com.practice.aulaequilibrio.model.Teacher;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,10 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public final class CatalogDAO {
     private final SessionFactory factory;
+
+    public CatalogDAO() {
+        this(HibernateUtil.getSessionFactory());
+    }
 
     private <T> T transaction(Function<Session, T> action) {
         try (Session session = factory.openSession()) {

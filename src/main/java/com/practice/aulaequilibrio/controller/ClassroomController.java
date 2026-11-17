@@ -1,5 +1,5 @@
 package com.practice.aulaequilibrio.controller;
-import com.practice.aulaequilibrio.dao.*;
+import com.practice.aulaequilibrio.service.ClassroomService;
 import com.practice.aulaequilibrio.model.*;
 import com.practice.aulaequilibrio.util.Dialogs;
 import javafx.application.Platform;
@@ -18,8 +18,7 @@ public class ClassroomController {
     @FXML private TableColumn<ClassroomType,String> typeNameColumn;
     @FXML private Label status, classroomScope;
     @FXML private Button editClassroomButton, deleteClassroomButton, editTypeButton, deleteTypeButton, showAllButton;
-    private final ClassroomDAO classrooms=new ClassroomDAO();
-    private final ClassroomTypeDAO types=new ClassroomTypeDAO();
+    private final ClassroomService service = new ClassroomService();
     private boolean refreshing;
     @FXML private void initialize() {
         classroomTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);typeTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
@@ -49,7 +48,7 @@ public class ClassroomController {
         status.setText("Cargando aulas…");
         Thread thread = new Thread(() -> {
             try {
-                List<ClassroomType> categories = types.listar();
+                List<ClassroomType> categories = service.listTypes();
                 ClassroomType current = categories.stream().filter(type -> type.getId().equals(typeId))
                         .findFirst().orElse(null);
                 List<Classroom> rooms = findClassrooms(current);
@@ -92,7 +91,7 @@ public class ClassroomController {
     }
 
     private List<Classroom> findClassrooms(ClassroomType type) {
-        return type == null ? classrooms.listar() : classrooms.listarPorTipo(type.getId());
+        return service.listClassrooms(type == null ? null : type.getId());
     }
 
     private void showClassrooms(ClassroomType type, List<Classroom> rooms) {
@@ -131,7 +130,7 @@ public class ClassroomController {
                 // Mantener el id y la revisión para detectar ediciones simultáneas.
                 Classroom value=selected==null?new Classroom():selected;String oldCode=value.getCodigo();Integer oldCapacity=value.getCapacidad();ClassroomType oldType=value.getType();
                 value.setCodigo(normalized);value.setCapacidad(count);value.setType(type.getValue());
-                save(pane, close, feedback,() -> {try{classrooms.guardar(value);}catch(RuntimeException ex){value.setCodigo(oldCode);value.setCapacidad(oldCapacity);value.setType(oldType);throw ex;}});
+                save(pane, close, feedback,() -> {try{service.saveClassroom(value);}catch(RuntimeException ex){value.setCodigo(oldCode);value.setCapacidad(oldCapacity);value.setType(oldType);throw ex;}});
             }catch(Exception ex){feedback.setText(message(ex));}
         });
     }
@@ -143,7 +142,7 @@ public class ClassroomController {
         Dialogs.form(root, title, content, (pane, close) -> {
             String text=name.getText().trim();if(text.isBlank()||text.length()>60){feedback.setText("Ingrese un nombre de hasta 60 caracteres.");return;}
             ClassroomType value=selected==null?new ClassroomType():selected;String old=value.getName();value.setName(text);
-            save(pane, close, feedback,() -> {try{types.guardar(value);}catch(RuntimeException ex){value.setName(old);throw ex;}});
+            save(pane, close, feedback,() -> {try{service.saveType(value);}catch(RuntimeException ex){value.setName(old);throw ex;}});
         });
     }
     private void save(DialogPane pane, Runnable close, Label feedback, Runnable operation) {
@@ -152,8 +151,8 @@ public class ClassroomController {
             catch(Exception ex){Platform.runLater(() -> {pane.setDisable(false);feedback.setText(message(ex));});}
         },"guardar-aulas");thread.setDaemon(true);thread.start();
     }
-    @FXML private void deleteClassroom(){Classroom value=classroomTable.getSelectionModel().getSelectedItem();if(value==null){info("Seleccione un aula.");return;}remove("¿Eliminar el aula "+value.getCodigo()+"?",() -> classrooms.eliminar(value));}
-    @FXML private void deleteType(){ClassroomType value=typeTable.getSelectionModel().getSelectedItem();if(value==null){info("Seleccione un tipo.");return;}remove("¿Eliminar el tipo "+value.getName()+"?",() -> types.eliminar(value));}
+    @FXML private void deleteClassroom(){Classroom value=classroomTable.getSelectionModel().getSelectedItem();if(value==null){info("Seleccione un aula.");return;}remove("¿Eliminar el aula "+value.getCodigo()+"?",() -> service.deleteClassroom(value));}
+    @FXML private void deleteType(){ClassroomType value=typeTable.getSelectionModel().getSelectedItem();if(value==null){info("Seleccione un tipo.");return;}remove("¿Eliminar el tipo "+value.getName()+"?",() -> service.deleteType(value));}
     private void remove(String question,Runnable operation) {
         Dialogs.confirm(root, "Confirmar eliminación", question, () -> {
             root.setDisable(true);
