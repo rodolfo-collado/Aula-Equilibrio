@@ -5,6 +5,7 @@ import com.practice.aulaequilibrio.model.Availability;
 import com.practice.aulaequilibrio.model.Teacher;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalTime;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -19,8 +20,8 @@ public class CatalogService {
         return dao.listTeachers();
     }
 
-    public Teacher saveTeacher(Integer id, String name, String email) {
-        return dao.saveTeacher(id, name, email);
+    public Teacher saveTeacher(Integer id, String name, String email, boolean active) {
+        return dao.saveTeacher(id, name, email, active);
     }
 
     public void deleteTeacher(Integer id) {
@@ -31,8 +32,12 @@ public class CatalogService {
         return dao.listAvailability(teacherId);
     }
 
-    public Availability saveAvailability(Integer id, Integer teacherId, Integer day, Integer blockNumber) {
-        return dao.saveAvailability(id, teacherId, day, blockNumber);
+    public Availability saveInterval(Integer id, Integer teacherId, Integer day, String start, String end) {
+        try {
+            return dao.saveInterval(id, teacherId, day, LocalTime.parse(start.strip()), LocalTime.parse(end.strip()));
+        } catch (java.time.format.DateTimeParseException exception) {
+            throw new IllegalArgumentException("Escribe las horas en formato HH:mm, por ejemplo 08:30.");
+        }
     }
 
     public void deleteAvailability(Integer id) {

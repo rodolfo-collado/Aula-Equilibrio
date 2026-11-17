@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalTime;
+
 /** Un bloque disponible de un docente; día ISO: lunes=1, domingo=7. */
 @Getter
 @NoArgsConstructor
@@ -27,4 +29,12 @@ public class Availability {
     @Column(name = "block_number", nullable = false)
     @Setter
     private Integer blockNumber;
+
+    @Column(name = "start_time")
+    @Setter
+    private LocalTime startTime;
+
+    @Column(name = "end_time")
+    @Setter
+    private LocalTime endTime;
 }

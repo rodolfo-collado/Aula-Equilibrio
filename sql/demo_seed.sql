@@ -55,8 +55,10 @@ BEGIN
     -- del ejemplo evita duplicados si dos sesiones ejecutan la semilla a la vez.
     LOCK TABLE availability, schedule_version IN SHARE ROW EXCLUSIVE MODE;
 
-    INSERT INTO availability (teacher_id, weekday, block_number)
-    SELECT docente.id, demo.dia, demo.bloque
+    INSERT INTO availability (teacher_id, weekday, block_number, start_time, end_time)
+    SELECT docente.id, demo.dia, demo.bloque,
+           CASE WHEN demo.bloque = 1 THEN TIME '08:00' ELSE TIME '10:00' END,
+           CASE WHEN demo.bloque = 1 THEN TIME '10:00' ELSE TIME '12:00' END
     FROM (VALUES
         ('elena.demo@example.test', 1, 1),
         ('elena.demo@example.test', 3, 1),

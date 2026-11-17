@@ -50,8 +50,8 @@ class CatalogScreenTest {
                 idle();
                 teacher("Ana Pérez", "ana@example.test");
                 teacher("Luis López", "");
-                block(0, 0, "2");
-                block(1, 1, "6");
+                block(0, 0, "08:00", "10:00");
+                block(1, 1, "13:00", "15:00");
                 selectTeacher(0);
                 assertEquals(1, fx(() -> table("blocks").getItems().size()));
                 Availability shown = fx(() -> (Availability) table("blocks").getItems().getFirst());
@@ -76,22 +76,18 @@ class CatalogScreenTest {
                     combo("dayFilter").getSelectionModel().select(2);
                     assertTrue(table("blocks").getItems().isEmpty());
                     combo("dayFilter").getSelectionModel().select(1);
-                    field("blockFilter").setText("99");
-                    assertTrue(table("blocks").getItems().isEmpty());
-                    field("blockFilter").setText("2");
                     assertEquals(1, table("blocks").getItems().size());
-                    field("blockFilter").clear();
                     combo("dayFilter").getSelectionModel().selectFirst();
                     return null;
                 });
                 fx(() -> {
                     table("blocks").getSelectionModel().select(0);
-                    field("blockNumber").setText("9");
+                    field("startTime").setText("09:00");
                     combo("day").getSelectionModel().select(4);
-                    click("Guardar bloque"); return null;
+                    click("Guardar intervalo"); return null;
                 });
                 idle();
-                assertEquals(9, fx(() -> ((Availability) table("blocks").getItems().getFirst()).getBlockNumber()));
+                assertEquals("09:00", fx(() -> ((Availability) table("blocks").getItems().getFirst()).getStartTime().toString()));
                 fx(() -> {
                     table("teachers").getSelectionModel().select(0);
                     approveNextDialog();
@@ -105,7 +101,7 @@ class CatalogScreenTest {
                 fx(() -> {
                     table("blocks").getSelectionModel().select(0);
                     approveNextDialog();
-                    click("Eliminar bloque"); return null;
+                    click("Eliminar intervalo"); return null;
                 });
                 idle();
                 assertEquals(0, fx(() -> table("blocks").getItems().size()));
@@ -139,12 +135,13 @@ class CatalogScreenTest {
         idle();
     }
 
-    private void block(int teacher, int day, String number) throws Exception {
+    private void block(int teacher, int day, String start, String end) throws Exception {
         selectTeacher(teacher);
         fx(() -> {
             combo("day").getSelectionModel().select(day);
-            field("blockNumber").setText(number);
-            click("Guardar bloque"); return null;
+            field("startTime").setText(start);
+            field("endTime").setText(end);
+            click("Guardar intervalo"); return null;
         });
         idle();
     }

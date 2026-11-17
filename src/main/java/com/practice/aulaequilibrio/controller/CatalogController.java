@@ -6,7 +6,6 @@ import com.practice.aulaequilibrio.model.Teacher;
 import com.practice.aulaequilibrio.util.Dialogs;
 import com.practice.aulaequilibrio.view.mdi.MdiDesktop;
 import lombok.RequiredArgsConstructor;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -42,12 +41,12 @@ public class CatalogController {
     @FXML private SplitPane catalogs;
     @FXML private VBox availabilityPanel;
     @FXML private TableView<Teacher> teachers;
-    @FXML private TableColumn<Teacher, String> teacherName, teacherEmail;
+    @FXML private TableColumn<Teacher, String> teacherName, teacherEmail, teacherState;
     @FXML private TableView<Availability> blocks;
     @FXML private TableColumn<Availability, String> blockDay;
-    @FXML private TableColumn<Availability, Integer> blockValue;
+    @FXML private TableColumn<Availability, String> blockValue;
     @FXML private ComboBox<String> day, emailFilter, dayFilter;
-    @FXML private TextField blockNumber, teacherSearch, blockFilter;
+    @FXML private TextField startTime, endTime, teacherSearch;
     @FXML private Label availabilityTitle, blockEditorTitle, emptyTeachers, emptyBlocks, status;
     @FXML private Button editTeacherButton, deleteTeacherButton, deleteBlockButton;
 
@@ -75,7 +74,14 @@ public class CatalogController {
         teacherName.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getName()));
         teacherEmail.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getEmail()));
         blockDay.setCellValueFactory(cell -> new ReadOnlyStringWrapper(DAYS.get(cell.getValue().getDay() - 1)));
-        blockValue.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getBlockNumber()));
+        teacherState.setCellValueFactory(cell -> new ReadOnlyStringWrapper(
+                cell.getValue().isActive() ? "Activo" : "Inactivo"));
+        blockValue.setCellValueFactory(cell -> {
+            Availability value = cell.getValue();
+            String text = value.getStartTime() == null ? "Bloque " + value.getBlockNumber()
+                    : value.getStartTime() + " – " + value.getEndTime();
+            return new ReadOnlyStringWrapper(text);
+        });
         teachers.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         blocks.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         day.getItems().setAll(DAYS);
@@ -98,13 +104,15 @@ public class CatalogController {
         });
         blocks.getSelectionModel().selectedItemProperty().addListener((observable, previous, block) -> {
             if (block == null) {
-                blockEditorTitle.setText("Nuevo bloque");
+                blockEditorTitle.setText("Nuevo intervalo");
                 day.getSelectionModel().clearSelection();
-                blockNumber.clear();
+                startTime.clear();
+                endTime.clear();
             } else {
-                blockEditorTitle.setText("Editar bloque");
+                blockEditorTitle.setText("Editar intervalo");
                 day.getSelectionModel().select(block.getDay() - 1);
-                blockNumber.setText(block.getBlockNumber().toString());
+                startTime.setText(Objects.toString(block.getStartTime(), ""));
+                endTime.setText(Objects.toString(block.getEndTime(), ""));
             }
         });
         reload();
@@ -127,7 +135,6 @@ public class CatalogController {
         teacherSearch.textProperty().addListener((observable, before, after) -> filterTeachers());
         emailFilter.valueProperty().addListener((observable, before, after) -> filterTeachers());
         dayFilter.valueProperty().addListener((observable, before, after) -> filterBlocks());
-        blockFilter.textProperty().addListener((observable, before, after) -> filterBlocks());
     }
 
     private void filterTeachers() {
@@ -155,10 +162,8 @@ public class CatalogController {
 
     private void filterBlocks() {
         int selectedDay = Math.max(0, dayFilter.getSelectionModel().getSelectedIndex());
-        String number = blockFilter.getText().strip();
         Availability selected = blocks.getSelectionModel().getSelectedItem();
-        filteredBlocks.setPredicate(block -> (selectedDay == 0 || block.getDay() == selectedDay)
-                && (number.isEmpty() || block.getBlockNumber().toString().equals(number)));
+        filteredBlocks.setPredicate(block -> selectedDay == 0 || block.getDay() == selectedDay);
         if (selected != null && filteredBlocks.contains(selected)) {
             blocks.getSelectionModel().select(selected);
         } else {
@@ -204,6 +209,8 @@ public class CatalogController {
         email.setPromptText("correo@ejemplo.com");
         Label title = new Label(editing ? "Editar docente" : "Nuevo docente");
         title.getStyleClass().add("page-title");
+        CheckBox active = new CheckBox("Activo");
+        active.setSelected(!editing || teacher.isActive());
         Label feedback = new Label();
         feedback.setWrapText(true);
         feedback.getStyleClass().add("field-error");
@@ -215,22 +222,23 @@ public class CatalogController {
         HBox actions = new HBox(8, cancel, save);
         actions.setAlignment(Pos.CENTER_RIGHT);
         VBox form = new VBox(10, title, new Label("Nombre *"), name,
-                new Label("Correo opcional"), email, feedback, actions);
+                new Label("Correo opcional"), email, active, feedback, actions);
         form.getStyleClass().add("module-form");
 
         save.setOnAction(event -> {
             String enteredName = name.getText();
             String enteredEmail = email.getText();
             Integer id = editing ? teacher.getId() : null;
+            boolean enabled = active.isSelected();
             feedback.setText("");
-            run("Docente guardado.", () -> service.saveTeacher(id, enteredName, enteredEmail), saved -> {
+            run("Docente guardado.", () -> service.saveTeacher(id, enteredName, enteredEmail, enabled), saved -> {
                 updateTeacherRow(saved);
                 if (catalogs.getScene() != null) {
                     desktop.close(TEACHER_FORM);
                 }
             }, feedback::setText);
         });
-        desktop.openPopup(moduleTitle, TEACHER_FORM, form, 460, 345);
+        desktop.openPopup(moduleTitle, TEACHER_FORM, form, 460, 375);
         name.requestFocus();
     }
 
@@ -267,7 +275,8 @@ public class CatalogController {
     @FXML private void newBlock() {
         blocks.getSelectionModel().clearSelection();
         day.getSelectionModel().clearSelection();
-        blockNumber.clear();
+        startTime.clear();
+        endTime.clear();
         day.requestFocus();
     }
 
@@ -279,22 +288,19 @@ public class CatalogController {
         Availability selected = blocks.getSelectionModel().getSelectedItem();
         Integer id = selected == null ? null : selected.getId();
         Integer dayValue = day.getValue() == null ? null : DAYS.indexOf(day.getValue()) + 1;
-        int number;
-        try {
-            number = Integer.parseInt(blockNumber.getText().strip());
-        } catch (NumberFormatException exception) {
-            message("El número de bloque debe ser un entero mayor que cero.");
-            return;
-        }
-        run("Bloque guardado.", () -> service.saveAvailability(id, owner.getId(), dayValue, number), saved -> {
+        String start = startTime.getText();
+        String end = endTime.getText();
+        run("Disponibilidad guardada.", () -> service.saveInterval(id, owner.getId(), dayValue, start, end), saved -> {
             blocks.getSelectionModel().clearSelection();
             blockRows.removeIf(block -> Objects.equals(block.getId(), saved.getId()));
             blockRows.add(saved);
             blockRows.sort(Comparator.comparing(Availability::getDay)
+                    .thenComparing(Availability::getStartTime, Comparator.nullsLast(Comparator.naturalOrder()))
                     .thenComparing(Availability::getBlockNumber).thenComparing(Availability::getId));
             updateBlockPlaceholder();
             day.getSelectionModel().clearSelection();
-            blockNumber.clear();
+            startTime.clear();
+            endTime.clear();
         }, this::message);
     }
 
@@ -333,7 +339,8 @@ public class CatalogController {
         blockRows.setAll(items);
         updateBlockPlaceholder();
         day.getSelectionModel().clearSelection();
-        blockNumber.clear();
+        startTime.clear();
+        endTime.clear();
     }
 
     private <T> void run(String success, Callable<T> work, Consumer<T> apply, Consumer<String> showError) {

@@ -8,6 +8,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.exception.ConstraintViolationException;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.function.Function;
 
@@ -39,6 +40,10 @@ public final class CatalogDAO {
     }
 
     public Teacher saveTeacher(Integer id, String name, String email) {
+        return saveTeacher(id, name, email, null);
+    }
+
+    public Teacher saveTeacher(Integer id, String name, String email, Boolean active) {
         if (name == null || name.isBlank() || name.strip().length() > 120)
             throw new IllegalArgumentException("El nombre es obligatorio y debe tener como máximo 120 caracteres.");
         String cleanEmail = email == null || email.isBlank() ? null : email.strip();
@@ -48,6 +53,9 @@ public final class CatalogDAO {
             Teacher teacher = id == null ? new Teacher() : requireTeacher(s, id);
             teacher.setName(name.strip());
             teacher.setEmail(cleanEmail);
+            if (active != null) {
+                teacher.setActive(active);
+            }
             if (id == null) s.persist(teacher);
             return teacher;
         });
@@ -73,15 +81,28 @@ public final class CatalogDAO {
     public List<Availability> listAvailability(Integer teacherId) {
         return transaction(s -> {
             if (teacherId == null)
-                return s.createQuery("select a from Availability a join fetch a.teacher t order by t.name, a.day, a.blockNumber, a.id",
+                return s.createQuery("select a from Availability a join fetch a.teacher t order by t.name, a.day, a.startTime nulls last, a.blockNumber, a.id",
                         Availability.class).getResultList();
             return s.createQuery("select a from Availability a join fetch a.teacher t where t.id = :teacherId "
-                            + "order by a.day, a.blockNumber, a.id", Availability.class)
+                            + "order by a.day, a.startTime nulls last, a.blockNumber, a.id", Availability.class)
                     .setParameter("teacherId", teacherId).getResultList();
         });
     }
 
     public Availability saveAvailability(Integer id, Integer teacherId, Integer day, Integer blockNumber) {
+        return saveAvailability(id, teacherId, day, blockNumber, null, null);
+    }
+
+    public Availability saveInterval(Integer id, Integer teacherId, Integer day, LocalTime start, LocalTime end) {
+        if (start == null || end == null || !start.isBefore(end)) {
+            throw new IllegalArgumentException("La hora de inicio debe ser anterior a la de fin.");
+        }
+        // Mantiene la columna obligatoria de los registros anteriores.
+        return saveAvailability(id, teacherId, day, start.getHour() * 60 + start.getMinute() + 1, start, end);
+    }
+
+    private Availability saveAvailability(Integer id, Integer teacherId, Integer day, Integer blockNumber,
+                                          LocalTime start, LocalTime end) {
         if (teacherId == null) throw new IllegalArgumentException("Selecciona un docente existente.");
         if (day == null || day < 1 || day > 7)
             throw new IllegalArgumentException("Selecciona un día de lunes a domingo.");
@@ -94,6 +115,8 @@ public final class CatalogDAO {
             block.setTeacher(teacher);
             block.setDay(day);
             block.setBlockNumber(blockNumber);
+            block.setStartTime(start);
+            block.setEndTime(end);
             if (id == null) s.persist(block);
             return block;
         });
