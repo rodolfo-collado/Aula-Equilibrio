@@ -37,6 +37,8 @@
             </MenuButton>
             <Separator orientation="VERTICAL"/>
             <Button text="Horarios" onAction="#openSchedules"/>
+            <Button text="Facultades y carreras" accessibleText="Facultades y carreras"
+                    userData="academic-structure-view.fxml" onAction="#openCatalog"/>
             <Button text="Docentes y disponibilidad" accessibleText="Docentes y disponibilidad"
                     userData="catalog-view.fxml" onAction="#openCatalog"/>
             <Button text="Oferta académica" accessibleText="Oferta académica"
@@ -76,6 +78,16 @@
                 </Button>
             </HBox>
             <HBox spacing="14">
+                <Button onAction="#openCatalog" userData="academic-structure-view.fxml"
+                        accessibleText="Facultades y carreras" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                        styleClass="catalog-link">
+                    <graphic>
+                        <VBox spacing="5">
+                            <Label text="Facultades y carreras" styleClass="card-title"/>
+                            <Label text="Administra la estructura académica." styleClass="muted"/>
+                        </VBox>
+                    </graphic>
+                </Button>
                 <Button onAction="#openCatalog" userData="classroom-view.fxml" accessibleText="Aulas" maxWidth="Infinity"
                         HBox.hgrow="ALWAYS" styleClass="catalog-link">
                     <graphic>
