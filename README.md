@@ -42,6 +42,11 @@ Antes de cada escritura, una transacción vuelve a validar los intervalos, la di
 
 Al iniciar se ejecuta `sql/migrate_time_intervals.sql`, que elimina las antiguas columnas numéricas de disponibilidad y asignaciones. Se recuperan horarios anteriores únicamente cuando hay una disponibilidad inequívoca y cabe la duración de la asignatura. Los registros sin equivalencia segura o con un cruce conservan sus relaciones y quedan pendientes de revisión, sin horas inventadas. Aparecen en **Lista** y en los pendientes del dashboard, y no cuentan como cobertura. Selecciónalos para asignarles horas o eliminarlos. La migración se puede repetir y no borra docentes, grupos, aulas ni versiones.
 
+## Reportes
+
+Abre **Reportes** desde la barra superior. La pestaña **Horario** lista las sesiones de una versión y permite filtrarlas por grupo, docente o aula. **Carga docente** compara las horas asignadas de cada docente con su disponibilidad semanal; sin disponibilidad registrada, el uso se muestra como **—**. **Ocupación de aulas** está en desarrollo.
+
+Cada pestaña exporta su selección con JasperReports a **PDF** o **Excel (.xlsx)**. Los diseños `.jrxml` se editan con Jaspersoft Studio 7.0.x; consulta [docs/REPORTES.md](docs/REPORTES.md) para crear o modificar un reporte.
 
 ## Ejecutar
 
