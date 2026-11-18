@@ -8,6 +8,7 @@ import com.practice.aulaequilibrio.model.ScheduleReportData.SessionRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.TeacherLoadRow;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,6 +54,21 @@ public class ScheduleReportService {
                 "grupo", row.group(),
                 "docente", row.teacher(),
                 "aula", row.classroom())).toList();
+    }
+
+    /** Filas para carga-docente.jrxml; el uso queda vacío cuando no hay disponibilidad registrada. */
+    public static List<Map<String, ?>> teacherLoadFields(List<TeacherLoadRow> rows) {
+        return rows.stream().<Map<String, ?>>map(row -> {
+            Map<String, Object> fields = new HashMap<>();
+            fields.put("docente", row.teacher());
+            fields.put("estado", row.active() ? "Activo" : "Inactivo");
+            fields.put("sesiones", row.sessions());
+            fields.put("horas_asignadas", row.assignedMinutes() / 60.0);
+            fields.put("horas_disponibles", row.availableMinutes() / 60.0);
+            fields.put("uso", row.usage());
+            fields.put("sin_carga", row.active() && row.sessions() == 0 ? 1 : 0);
+            return fields;
+        }).toList();
     }
 
     public static String dayName(int day) {

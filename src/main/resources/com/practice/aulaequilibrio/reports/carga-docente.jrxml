@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport name="carga-docente" language="java" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="89c6c391-0649-4023-a8de-e5af239c304e">
+	<style name="Base" default="true" fontName="DejaVu Sans" fontSize="9.0" forecolor="#1E293B"/>
+	<style name="Titulo" fontName="DejaVu Sans" fontSize="16.0" bold="true" forecolor="#1F3A5F"/>
+	<style name="Subtitulo" fontName="DejaVu Sans" fontSize="10.0" forecolor="#475569"/>
+	<style name="Encabezado" mode="Opaque" backcolor="#1F3A5F" forecolor="#FFFFFF" fontName="DejaVu Sans" fontSize="9.0" bold="true" vTextAlign="Middle">
+		<box leftPadding="4" rightPadding="4"/>
+	</style>
+	<style name="Celda" fontName="DejaVu Sans" fontSize="9.0" vTextAlign="Middle">
+		<box leftPadding="4" rightPadding="4">
+			<bottomPen lineWidth="0.5" lineColor="#CBD5E1"/>
+		</box>
+	</style>
+	<parameter name="TITULO" class="java.lang.String"/>
+	<parameter name="SUBTITULO" class="java.lang.String"/>
+	<field name="docente" class="java.lang.String"/>
+	<field name="estado" class="java.lang.String"/>
+	<field name="sesiones" class="java.lang.Integer"/>
+	<field name="horas_asignadas" class="java.lang.Double"/>
+	<field name="horas_disponibles" class="java.lang.Double"/>
+	<field name="uso" class="java.lang.Double"/>
+	<field name="sin_carga" class="java.lang.Integer"/>
+	<variable name="TOTAL_SESIONES" calculation="Sum" class="java.lang.Integer">
+		<expression><![CDATA[$F{sesiones}]]></expression>
+	</variable>
+	<variable name="SIN_CARGA" calculation="Sum" class="java.lang.Integer">
+		<expression><![CDATA[$F{sin_carga}]]></expression>
+	</variable>
+	<title height="52">
+		<element kind="textField" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d01" x="0" y="0" width="600" height="24" style="Titulo">
+			<expression><![CDATA[$P{TITULO}]]></expression>
+		</element>
+		<element kind="textField" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d02" x="0" y="26" width="600" height="18" blankWhenNull="true" style="Subtitulo">
+			<expression><![CDATA[$P{SUBTITULO}]]></expression>
+		</element>
+		<element kind="staticText" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d03" x="602" y="0" width="200" height="18" hTextAlign="Right" style="Subtitulo">
+			<text><![CDATA[Aula Equilibrio]]></text>
+		</element>
+		<element kind="textField" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d04" x="602" y="26" width="200" height="18" pattern="dd/MM/yyyy HH:mm" hTextAlign="Right" style="Subtitulo">
+			<expression><![CDATA[new java.util.Date()]]></expression>
+		</element>
+		<element kind="line" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d05" x="0" y="48" width="802" height="1" forecolor="#1F3A5F"/>
+	</title>
+	<columnHeader height="20">
+		<element kind="staticText" uuid="d25178a3-c6ef-4340-b510-671bc1ee5f05" x="0" y="0" width="300" height="20" hTextAlign="Left" style="Encabezado">
+			<text><![CDATA[Docente]]></text>
+		</element>
+		<element kind="staticText" uuid="ae4b6493-b4fe-4cdf-a905-d6728781f964" x="300" y="0" width="100" height="20" hTextAlign="Left" style="Encabezado">
+			<text><![CDATA[Estado]]></text>
+		</element>
+		<element kind="staticText" uuid="deacd39f-220f-47e2-8fbd-2dc41cd87c15" x="400" y="0" width="100" height="20" hTextAlign="Right" style="Encabezado">
+			<text><![CDATA[Sesiones]]></text>
+		</element>
+		<element kind="staticText" uuid="b37bb374-d8c8-4757-8328-70df3c385cd6" x="500" y="0" width="110" height="20" hTextAlign="Right" style="Encabezado">
+			<text><![CDATA[Horas asignadas]]></text>
+		</element>
+		<element kind="staticText" uuid="3bd4e399-4de0-46e2-9336-0b2d5fd23ebd" x="610" y="0" width="110" height="20" hTextAlign="Right" style="Encabezado">
+			<text><![CDATA[Horas disponibles]]></text>
+		</element>
+		<element kind="staticText" uuid="f1f3342a-47d1-455f-8d22-ac27799541a2" x="720" y="0" width="82" height="20" hTextAlign="Right" style="Encabezado">
+			<text><![CDATA[Uso]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="18">
+			<element kind="textField" uuid="36cac486-5ce5-48d7-850f-0c113d7921e8" x="0" y="0" width="300" height="18" hTextAlign="Left" textAdjust="StretchHeight" style="Celda">
+				<expression><![CDATA[$F{docente}]]></expression>
+			</element>
+			<element kind="textField" uuid="60f9f0b7-feb4-430f-8edc-3ca4271edec0" x="300" y="0" width="100" height="18" hTextAlign="Left" textAdjust="StretchHeight" style="Celda">
+				<expression><![CDATA[$F{estado}]]></expression>
+			</element>
+			<element kind="textField" uuid="f94a22d1-7fad-40a4-bac5-663cd7f5513b" x="400" y="0" width="100" height="18" hTextAlign="Right" textAdjust="StretchHeight" style="Celda">
+				<expression><![CDATA[$F{sesiones}]]></expression>
+			</element>
+			<element kind="textField" uuid="7612c999-f854-4907-b515-9632d5df1668" x="500" y="0" width="110" height="18" pattern="#,##0.0" hTextAlign="Right" textAdjust="StretchHeight" style="Celda">
+				<expression><![CDATA[$F{horas_asignadas}]]></expression>
+			</element>
+			<element kind="textField" uuid="2fb01a16-6bf6-4505-aed1-26a5009fde15" x="610" y="0" width="110" height="18" pattern="#,##0.0" hTextAlign="Right" textAdjust="StretchHeight" style="Celda">
+				<expression><![CDATA[$F{horas_disponibles}]]></expression>
+			</element>
+			<element kind="textField" uuid="1b12c66b-1b12-4ba3-948a-69c6d50ef9b3" x="720" y="0" width="82" height="18" pattern="#0%" blankWhenNull="true" hTextAlign="Right" textAdjust="StretchHeight" style="Celda">
+				<expression><![CDATA[$F{uso}]]></expression>
+			</element>
+			<element kind="staticText" uuid="ccedb62a-88aa-43d9-9f7d-a2ca4be8fede" x="720" y="0" width="82" height="18" hTextAlign="Right" style="Celda">
+				<printWhenExpression><![CDATA[$F{uso} == null]]></printWhenExpression>
+				<text><![CDATA[—]]></text>
+			</element>
+		</band>
+	</detail>
+	<pageFooter height="20">
+		<element kind="textField" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d06" x="602" y="4" width="160" height="16" hTextAlign="Right" style="Subtitulo">
+			<expression><![CDATA["Página " + $V{PAGE_NUMBER} + " de"]]></expression>
+		</element>
+		<element kind="textField" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d07" x="762" y="4" width="40" height="16" evaluationTime="Report" style="Subtitulo">
+			<expression><![CDATA[" " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+	</pageFooter>
+	<summary height="30">
+		<element kind="textField" uuid="d92e70b6-da0e-443b-838f-aa8f4b0c2263" x="0" y="6" width="802" height="20" style="Subtitulo">
+			<printWhenExpression><![CDATA[$V{REPORT_COUNT} > 0]]></printWhenExpression>
+			<expression><![CDATA["Total de sesiones: " + $V{TOTAL_SESIONES} + " · Docentes activos sin sesiones: " + $V{SIN_CARGA}]]></expression>
+		</element>
+		<element kind="staticText" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d08" x="0" y="6" width="802" height="20" style="Subtitulo">
+			<printWhenExpression><![CDATA[$V{REPORT_COUNT} == 0]]></printWhenExpression>
+			<text><![CDATA[No hay datos para esta selección.]]></text>
+		</element>
+	</summary>
+</jasperReport>
