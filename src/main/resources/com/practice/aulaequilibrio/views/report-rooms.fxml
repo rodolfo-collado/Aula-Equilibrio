@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- Reporte de ocupación de aulas: lo completa la rama rolando-mayorga. -->
+<VBox xmlns:fx="http://javafx.com/fxml" spacing="10" styleClass="panel">
+    <Label text="Ocupación de aulas" styleClass="card-title"/>
+    <Label text="Reporte en desarrollo." styleClass="muted"/>
+</VBox>
