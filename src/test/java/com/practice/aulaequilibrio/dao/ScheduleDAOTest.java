@@ -127,4 +127,21 @@ public class ScheduleDAOTest {
         assertThrows(IllegalArgumentException.class, () -> catalog.saveInterval(null, data.teacher(), 1, LocalTime.of(7,45), LocalTime.of(8,15)));
         assertEquals(2, catalog.listAvailability(data.teacher()).stream().filter(a -> a.getDay() == 1).count());
     }
+
+    @Test void teacherCannotAttendTwoDifferentGroupsInOverlappingIntervalsEvenInDifferentRooms() {
+        int anotherGroup = factory.fromTransaction(s -> {
+            Groupe group = new Groupe(); group.setNombre("G3"); group.setCantidadEstudiantes(20);
+            group.setSubject(s.find(Subject.class, data.subject())); group.setTeacher(s.find(Teacher.class, data.teacher()));
+            s.persist(group); return group.getId();
+        });
+        int version = dao.saveVersion(null, "Un grupo por docente");
+        dao.saveAssignment(version, null, data.placement(1, "08:00"));
+        var error = assertThrows(IllegalArgumentException.class, () -> dao.saveAssignment(version, null,
+                new Placement(1, LocalTime.of(8,30), LocalTime.of(9,30), anotherGroup, data.subject(), data.teacher(), data.otherRoom())));
+        assertTrue(error.getMessage().contains("docente"));
+        assertEquals(1, dao.listAssignments(version, null).size());
+        dao.saveAssignment(version, null,
+                new Placement(1, LocalTime.of(9,0), LocalTime.of(10,0), anotherGroup, data.subject(), data.teacher(), data.otherRoom()));
+        assertEquals(2, dao.listAssignments(version, null).size());
+    }
 }
