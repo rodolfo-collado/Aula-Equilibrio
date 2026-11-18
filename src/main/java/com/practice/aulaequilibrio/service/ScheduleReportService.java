@@ -5,6 +5,7 @@ import com.practice.aulaequilibrio.model.DashboardData.VersionOption;
 import com.practice.aulaequilibrio.model.ScheduleReportData.Option;
 import com.practice.aulaequilibrio.model.ScheduleReportData.Scope;
 import com.practice.aulaequilibrio.model.ScheduleReportData.SessionRow;
+import com.practice.aulaequilibrio.model.ScheduleReportData.TeacherLoadRow;
 
 import java.util.Comparator;
 import java.util.List;
@@ -24,6 +25,10 @@ public class ScheduleReportService {
 
     public List<SessionRow> sessions(Integer versionId) {
         return versionId == null ? List.of() : dao.sessions(versionId);
+    }
+
+    public List<TeacherLoadRow> teacherLoad(Integer versionId) {
+        return versionId == null ? List.of() : TeacherLoadCalculator.rows(dao.teacherLoad(versionId));
     }
 
     /** Grupos, docentes o aulas presentes en la versión, ordenados por nombre. */

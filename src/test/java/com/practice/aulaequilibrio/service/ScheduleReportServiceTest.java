@@ -29,6 +29,7 @@ class ScheduleReportServiceTest {
 
     @Test void withoutVersionThereAreNoSessionsAndDaysHaveNames() {
         assertTrue(new ScheduleReportService(null).sessions(null).isEmpty());
+        assertTrue(new ScheduleReportService(null).teacherLoad(null).isEmpty());
         assertEquals("Miércoles", ScheduleReportService.dayName(3));
         assertEquals("Día 9", ScheduleReportService.dayName(9));
     }
