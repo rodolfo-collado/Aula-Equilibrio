@@ -30,6 +30,10 @@ public class CareerSubject {
     @Column(name = "recommended_level")
     private Short recommendedLevel;
 
+    @Column(name = "optional", nullable = false, columnDefinition = "boolean default false")
+    @Setter
+    private boolean optional;
+
     public CareerSubject(Career career, Subject subject, Short recommendedLevel) {
         this.career = Objects.requireNonNull(career, "La carrera es obligatoria.");
         this.subject = Objects.requireNonNull(subject, "La asignatura es obligatoria.");

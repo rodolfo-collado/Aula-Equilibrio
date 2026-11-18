@@ -27,6 +27,10 @@ public class Subject {
     @Setter
     private Integer sesionesRequeridas;
 
+    @Column(name = "duration_minutes", nullable = false, columnDefinition = "integer default 60")
+    @Setter
+    private int durationMinutes = 60;
+
     @Override
     public String toString() {
         return codigo + " - " + nombre;

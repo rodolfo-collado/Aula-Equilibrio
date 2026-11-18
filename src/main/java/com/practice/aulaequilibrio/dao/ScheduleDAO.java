@@ -105,6 +105,18 @@ public class ScheduleDAO {
             Teacher teacher = required(session, Teacher.class, placement.teacherId(), "un docente");
             Classroom classroom = required(session, Classroom.class, placement.classroomId(), "un aula");
 
+            if (group.getSubject() != null && !group.getSubject().getId().equals(subject.getId())) {
+                throw new IllegalArgumentException("La asignatura debe coincidir con la del grupo.");
+            }
+            if (group.getTeacher() != null && !group.getTeacher().getId().equals(teacher.getId())) {
+                throw new IllegalArgumentException("El profesor debe coincidir con el asignado al grupo.");
+            }
+            if (!teacher.isActive()) {
+                throw new IllegalArgumentException("El profesor seleccionado está inactivo.");
+            }
+            if (group.getSubject() != null && group.getCapacity() > classroom.getCapacidad()) {
+                throw new IllegalArgumentException("El aula no tiene capacidad suficiente para el cupo del grupo.");
+            }
             checkConflicts(session, versionId, assignmentId, placement);
             assignment.assign(group, subject, teacher, classroom, placement.day(), placement.block());
             if (assignmentId == null) {

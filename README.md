@@ -34,7 +34,9 @@ Al abrir la aplicación, Hibernate prepara las tablas y ejecuta `sql/demo_seed.s
 
 La semilla agrega filas de ejemplo que falten y conserva los registros existentes. Abre **Horarios** desde la barra superior y selecciona **Demo · Semana académica** para probar el filtro por grupo.
 
-En **Oferta académica**, administra grupos y asignaturas en dos tablas de una misma ventana. Los botones de alta y edición abren sus formularios dentro del escritorio MDI.
+En **Oferta académica**, selecciona una asignatura para ver sus grupos. El formulario de asignatura define las horas por sesión, las sesiones semanales y las carreras donde es obligatoria u opcional. Puedes buscar por código o nombre y filtrar por carrera.
+
+Cada grupo pertenece a una asignatura y permite definir código, cupo, demanda estimada y profesor. El profesor puede quedar pendiente. Para un grupo con horario, primero ajusta sus asignaciones antes de cambiar el profesor. Los registros anteriores conservan sus datos. La semilla vincula los grupos de demostración con sus asignaturas.
 
 En **Aulas**, crea primero un tipo en el panel lateral y luego registra un aula con ese tipo. Selecciona una fila de **Tipos de aula** para filtrar la tabla principal o pulsa **Todos los tipos** para quitar el filtro. En **Horarios**, el aula aparecerá entre las opciones de una asignación.
 

@@ -36,6 +36,16 @@ BEGIN
     WHERE career.code = 'DEMO-SIS'
     ON CONFLICT (id_career, id_subject) DO NOTHING;
 
+    UPDATE grupo SET subject_id = asignatura.id, teacher_id = teacher.id, capacity = grupo.cantidad_estudiantes
+    FROM (VALUES
+        ('DEMO-1A', 'DEMO-PROG', 'elena.demo@example.test'),
+        ('DEMO-1B', 'DEMO-MAT', 'mateo.demo@example.test'),
+        ('DEMO-2A', 'DEMO-BD', 'sofia.demo@example.test')
+    ) AS demo(group_code, subject_code, email)
+    JOIN asignatura ON asignatura.codigo = demo.subject_code
+    JOIN teacher ON teacher.email = demo.email
+    WHERE grupo.nombre = demo.group_code AND grupo.subject_id IS NULL AND grupo.teacher_id IS NULL;
+
     INSERT INTO classroom_type (name, revision) VALUES
         ('Demo · Aula teórica', 0),
         ('Demo · Laboratorio', 0)
