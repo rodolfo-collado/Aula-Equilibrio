@@ -20,6 +20,10 @@ public final class ScheduleReportData {
 
     public record TeacherLoadFacts(List<TeacherInfo> teachers, List<Interval> assigned, List<Interval> available) {}
 
+    /** Uso de la disponibilidad; {@code usage} es nulo cuando el docente no tiene horas disponibles. */
+    public record TeacherLoadRow(Integer teacherId, String teacher, boolean active, int sessions,
+                                 long assignedMinutes, long availableMinutes, Double usage) {}
+
     public enum Scope {
         GROUP("Grupo"), TEACHER("Docente"), CLASSROOM("Aula");
 
