@@ -43,6 +43,7 @@
             <Button text="Oferta académica" accessibleText="Oferta académica"
                     userData="academic-offer-view.fxml" onAction="#openCatalog"/>
             <Button text="Aulas" accessibleText="Aulas" userData="classroom-view.fxml" onAction="#openCatalog"/>
+            <Button text="Reportes" accessibleText="Reportes" userData="report-view.fxml" onAction="#openCatalog"/>
             <HBox fx:id="popupTasks" spacing="6"/>
         </ToolBar>
     </top>

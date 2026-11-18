@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" styleClass="module-page">
+    <center>
+        <VBox spacing="12">
+            <Label text="Reportes" styleClass="page-title"/>
+            <TabPane fx:id="reports" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </center>
+</BorderPane>
