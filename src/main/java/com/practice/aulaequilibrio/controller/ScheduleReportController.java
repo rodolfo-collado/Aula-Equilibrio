@@ -4,6 +4,7 @@ import com.practice.aulaequilibrio.model.DashboardData.VersionOption;
 import com.practice.aulaequilibrio.model.ScheduleReportData.Option;
 import com.practice.aulaequilibrio.model.ScheduleReportData.Scope;
 import com.practice.aulaequilibrio.model.ScheduleReportData.SessionRow;
+import com.practice.aulaequilibrio.report.ReportEngine.Format;
 import com.practice.aulaequilibrio.service.ScheduleReportService;
 import com.practice.aulaequilibrio.util.ErrorMessages;
 import com.practice.aulaequilibrio.util.ReportActions;
@@ -15,6 +16,7 @@ import javafx.scene.control.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -22,11 +24,12 @@ import java.util.function.Function;
 
 public class ScheduleReportController {
     private static final Option ALL = new Option(null, "Todos");
+    private static final String DESIGN = "/com/practice/aulaequilibrio/reports/horario.jrxml";
 
     @FXML private ComboBox<VersionOption> version;
     @FXML private ComboBox<Scope> scope;
     @FXML private ComboBox<Option> resource;
-    @FXML private Button refreshButton, exportButton, printButton;
+    @FXML private Button refreshButton, pdfButton, excelButton;
     @FXML private TableView<SessionRow> sessions;
     @FXML private TableColumn<SessionRow, String> dayColumn, startColumn, endColumn, subjectColumn,
             groupColumn, teacherColumn, classroomColumn;
@@ -51,8 +54,8 @@ public class ScheduleReportController {
         scope.getItems().setAll(Scope.values());
         scope.getSelectionModel().selectFirst();
         var noRows = Bindings.isEmpty(sessions.getItems());
-        exportButton.disableProperty().bind(noRows);
-        printButton.disableProperty().bind(noRows);
+        pdfButton.disableProperty().bind(noRows);
+        excelButton.disableProperty().bind(noRows);
         version.valueProperty().addListener((obs, before, after) -> {
             if (!applying) loadSessions();
         });
@@ -102,13 +105,20 @@ public class ScheduleReportController {
         status.setText(sessions.getItems().size() + " sesiones en el reporte.");
     }
 
-    @FXML private void exportCsv() {
-        String name = version.getValue() == null ? "horario" : "horario-" + version.getValue().name();
-        ReportActions.exportCsv(sessions, name.replaceAll("[^\\p{L}\\p{N}]+", "-"));
+    @FXML private void exportPdf() {
+        export(Format.PDF);
     }
 
-    @FXML private void print() {
-        ReportActions.print(sessions);
+    @FXML private void exportExcel() {
+        export(Format.XLSX);
+    }
+
+    private void export(Format format) {
+        String versionName = version.getValue() == null ? "" : version.getValue().name();
+        String subtitle = "Versión: " + versionName + (resource.getValue() == ALL ? ""
+                : " · " + scope.getValue() + ": " + resource.getValue().label());
+        ReportActions.export(sessions, DESIGN, Map.of("TITULO", "Horario semanal", "SUBTITULO", subtitle),
+                ScheduleReportService.scheduleFields(List.copyOf(sessions.getItems())), format, "horario " + versionName);
     }
 
     private <T> void run(Callable<T> work, Consumer<T> apply) {

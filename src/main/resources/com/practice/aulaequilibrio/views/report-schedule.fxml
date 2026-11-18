@@ -11,8 +11,8 @@
         <ComboBox fx:id="scope" promptText="Ver por" prefWidth="130"/>
         <ComboBox fx:id="resource" promptText="Todos" prefWidth="210"/>
         <Button fx:id="refreshButton" text="Actualizar" onAction="#refresh"/>
-        <Button fx:id="exportButton" text="Exportar CSV" onAction="#exportCsv"/>
-        <Button fx:id="printButton" text="Imprimir" onAction="#print"/>
+        <Button fx:id="pdfButton" text="Exportar PDF" onAction="#exportPdf" styleClass="primary"/>
+        <Button fx:id="excelButton" text="Exportar Excel" onAction="#exportExcel"/>
     </FlowPane>
     <TableView fx:id="sessions" VBox.vgrow="ALWAYS">
         <placeholder><Label fx:id="empty" text="Selecciona una versión de horario."/></placeholder>

@@ -1,55 +1,78 @@
 package com.practice.aulaequilibrio.util;
 
-import javafx.print.PrinterJob;
+import com.practice.aulaequilibrio.report.ReportEngine;
+import com.practice.aulaequilibrio.report.ReportEngine.Format;
+import javafx.concurrent.Task;
 import javafx.scene.Node;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.stage.FileChooser;
 
+import java.awt.Desktop;
 import java.io.File;
-import java.io.IOException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.Map;
 
 /**
- * Acciones de exportar e imprimir compartidas por las pestañas de Reportes.
+ * Genera un diseño Jasper en segundo plano y lo guarda como PDF o Excel donde elija el usuario.
  */
 public final class ReportActions {
+    private static final System.Logger LOGGER = System.getLogger(ReportActions.class.getName());
+
     private ReportActions() {
     }
 
-    public static void exportCsv(TableView<?> table, String suggestedName) {
-        FileChooser chooser = new FileChooser();
-        chooser.setTitle("Exportar reporte");
-        chooser.setInitialFileName(suggestedName + ".csv");
-        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
-        File file = chooser.showSaveDialog(table.getScene().getWindow());
+    public static void export(Node owner, String design, Map<String, Object> parameters,
+                              List<Map<String, ?>> rows, Format format, String suggestedName) {
+        File file = chooseFile(owner, format, suggestedName);
         if (file == null) return;
-        try {
-            ReportExporter.writeCsv(file.toPath(), headers(table), rows(table));
-            Dialogs.info(table, "Reporte exportado", "Se guardó " + file.getName() + ".");
-        } catch (IOException exception) {
-            Dialogs.error(table, "No se pudo exportar el reporte", exception);
-        }
+        owner.setDisable(true);
+        Task<Void> task = new Task<>() {
+            @Override protected Void call() throws Exception {
+                var print = ReportEngine.fill(design, parameters, rows);
+                try (OutputStream output = new FileOutputStream(file)) {
+                    ReportEngine.export(print, format, output);
+                }
+                return null;
+            }
+        };
+        task.setOnSucceeded(event -> {
+            owner.setDisable(false);
+            Dialogs.info(owner, "Reporte generado", "Se guardó " + file.getName() + ".");
+            open(file);
+        });
+        task.setOnFailed(event -> {
+            owner.setDisable(false);
+            LOGGER.log(System.Logger.Level.ERROR, "No se pudo generar " + design, task.getException());
+            Dialogs.error(owner, "No se pudo generar el reporte", task.getException());
+        });
+        Thread worker = new Thread(task, "reporte-jasper");
+        worker.setDaemon(true);
+        worker.start();
     }
 
-    public static void print(Node content) {
-        PrinterJob job = PrinterJob.createPrinterJob();
-        if (job == null) {
-            Dialogs.warning(content, "No hay impresoras disponibles.");
-            return;
-        }
-        if (job.showPrintDialog(content.getScene().getWindow()) && job.printPage(content)) {
-            job.endJob();
-        }
+    private static File chooseFile(Node owner, Format format, String suggestedName) {
+        String extension = format == Format.PDF ? "pdf" : "xlsx";
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle(format == Format.PDF ? "Guardar reporte PDF" : "Guardar reporte Excel");
+        chooser.setInitialFileName(suggestedName.replaceAll("[^\\p{L}\\p{N}]+", "-") + "." + extension);
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
+                format == Format.PDF ? "Documento PDF" : "Libro de Excel", "*." + extension));
+        return chooser.showSaveDialog(owner.getScene().getWindow());
     }
 
-    static List<String> headers(TableView<?> table) {
-        return table.getVisibleLeafColumns().stream().map(TableColumn::getText).toList();
-    }
-
-    static List<List<?>> rows(TableView<?> table) {
-        return IntStream.range(0, table.getItems().size()).<List<?>>mapToObj(row -> table.getVisibleLeafColumns()
-                .stream().map(column -> column.getCellData(row)).toList()).toList();
+    /** Abre el archivo con la aplicación predeterminada del sistema, si está disponible. */
+    private static void open(File file) {
+        Thread opener = new Thread(() -> {
+            try {
+                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+                    Desktop.getDesktop().open(file);
+                }
+            } catch (Exception exception) {
+                LOGGER.log(System.Logger.Level.WARNING, "No se pudo abrir " + file, exception);
+            }
+        }, "abrir-reporte");
+        opener.setDaemon(true);
+        opener.start();
     }
 }

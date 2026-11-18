@@ -4,6 +4,7 @@ module com.practice.aulaequilibrio {
 
     requires java.sql;
     requires java.naming;
+    requires java.desktop;
     requires jakarta.persistence;
     requires org.hibernate.orm.core;
     requires org.postgresql.jdbc;

@@ -61,7 +61,7 @@ class ReportScreenTest {
                 return null;
             });
             assertEquals(1, fx(() -> sessions.getItems().size()));
-            assertFalse(fx(() -> root.lookup("#exportButton").isDisabled()));
+            assertFalse(fx(() -> root.lookup("#pdfButton").isDisabled()));
             fx(() -> { root.getScene().getWindow().hide(); return null; });
         }
     }
