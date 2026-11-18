@@ -8,6 +8,9 @@
         <VBox spacing="12">
             <Label text="Reportes" styleClass="page-title"/>
             <TabPane fx:id="reports" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+                <Tab text="Horario">
+                    <fx:include source="report-schedule.fxml"/>
+                </Tab>
                 <Tab text="Ocupación de aulas">
                     <fx:include source="report-rooms.fxml"/>
                 </Tab>
