@@ -1,16 +1,17 @@
 package com.practice.aulaequilibrio.model;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import java.time.LocalTime;
+import org.hibernate.annotations.Check;
 
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "schedule_assignment", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_schedule_classroom_slot",
-                columnNames = {"version_id", "day_of_week", "block_number", "classroom_id"}),
-        @UniqueConstraint(name = "uk_schedule_teacher_slot",
-                columnNames = {"version_id", "day_of_week", "block_number", "teacher_id"}),
-        @UniqueConstraint(name = "uk_schedule_group_slot",
-                columnNames = {"version_id", "day_of_week", "block_number", "group_id"})
-})
+@Table(name = "schedule_assignment")
+@Check(name = "ck_schedule_interval", constraints = "(start_time is null and end_time is null) or (start_time is not null and end_time is not null and start_time < end_time and start_time >= TIME '07:00' and end_time <= TIME '21:00')")
 public class ScheduleAssignment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,54 +40,25 @@ public class ScheduleAssignment {
     @Column(name = "day_of_week", nullable = false)
     private int day;
 
-    @Column(name = "block_number", nullable = false)
-    private int block;
+    @Column(name = "start_time")
+    private LocalTime startTime;
 
-    protected ScheduleAssignment() {
-    }
+    @Column(name = "end_time")
+    private LocalTime endTime;
+
+    public boolean hasTime() { return startTime != null && endTime != null && startTime.isBefore(endTime); }
 
     public ScheduleAssignment(ScheduleVersion version) {
         this.version = version;
     }
 
-    public void assign(Groupe group, Subject subject, Teacher teacher, Classroom classroom, int day, int block) {
+    public void assign(Groupe group, Subject subject, Teacher teacher, Classroom classroom, int day, LocalTime startTime, LocalTime endTime) {
         this.group = group;
         this.subject = subject;
         this.teacher = teacher;
         this.classroom = classroom;
         this.day = day;
-        this.block = block;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public ScheduleVersion getVersion() {
-        return version;
-    }
-
-    public Groupe getGroup() {
-        return group;
-    }
-
-    public Subject getSubject() {
-        return subject;
-    }
-
-    public Teacher getTeacher() {
-        return teacher;
-    }
-
-    public Classroom getClassroom() {
-        return classroom;
-    }
-
-    public int getDay() {
-        return day;
-    }
-
-    public int getBlock() {
-        return block;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 }

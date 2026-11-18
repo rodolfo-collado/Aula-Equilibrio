@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox fx:id="root" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.practice.aulaequilibrio.controller.AcademicOfferController"
+      spacing="12" styleClass="module-page">
+    <Label text="Oferta académica" styleClass="page-title"/>
+    <SplitPane dividerPositions="0.58" VBox.vgrow="ALWAYS" styleClass="module-split">
+        <VBox spacing="10" minWidth="310" styleClass="panel">
+            <Label text="Asignaturas" styleClass="card-title"/>
+            <FlowPane hgap="7" vgap="6">
+                <Button text="Nueva asignatura" onAction="#addSubject" styleClass="primary"/>
+                <Button fx:id="editSubject" text="Editar" onAction="#editSubject"/>
+                <Button fx:id="deleteSubject" text="Eliminar" onAction="#deleteSubject" styleClass="danger"/>
+                <Button text="Actualizar" onAction="#reload"/>
+            </FlowPane>
+            <TextField fx:id="search" promptText="Buscar por código o nombre"/>
+            <ComboBox fx:id="careerFilter" promptText="Todas las carreras" maxWidth="Infinity"/>
+            <TableView fx:id="subjects" VBox.vgrow="ALWAYS">
+                <placeholder><Label text="No hay asignaturas para este filtro."/></placeholder>
+                <columns>
+                    <TableColumn fx:id="subjectCode" text="Código" prefWidth="110"/>
+                    <TableColumn fx:id="subjectName" text="Asignatura" prefWidth="190"/>
+                    <TableColumn fx:id="subjectDuration" text="Horas/sesión" prefWidth="100"/>
+                    <TableColumn fx:id="subjectSessions" text="Sesiones/sem." prefWidth="100"/>
+                </columns>
+            </TableView>
+        </VBox>
+        <VBox fx:id="groupPanel" spacing="10" minWidth="280" styleClass="panel">
+            <Label text="Grupos de la asignatura" styleClass="card-title"/>
+            <Label fx:id="groupTitle" text="Selecciona una asignatura" styleClass="muted" wrapText="true"/>
+            <FlowPane hgap="7" vgap="6">
+                <Button text="Nuevo grupo" onAction="#addGroup" styleClass="primary"/>
+                <Button fx:id="editGroup" text="Editar" onAction="#editGroup"/>
+                <Button fx:id="deleteGroup" text="Eliminar" onAction="#deleteGroup" styleClass="danger"/>
+            </FlowPane>
+            <TableView fx:id="groups" VBox.vgrow="ALWAYS">
+                <placeholder><Label text="No hay grupos registrados."/></placeholder>
+                <columns>
+                    <TableColumn fx:id="groupCode" text="Grupo" prefWidth="100"/>
+                    <TableColumn fx:id="groupCapacity" text="Cupo" prefWidth="65"/>
+                    <TableColumn fx:id="groupDemand" text="Demanda" prefWidth="75"/>
+                    <TableColumn fx:id="groupTeacher" text="Profesor" prefWidth="155"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </SplitPane>
+</VBox>

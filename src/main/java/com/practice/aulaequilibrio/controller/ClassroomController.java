@@ -1,109 +1,238 @@
 package com.practice.aulaequilibrio.controller;
-import com.practice.aulaequilibrio.dao.*;
+
 import com.practice.aulaequilibrio.model.*;
-import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
+import com.practice.aulaequilibrio.service.ClassroomService;
+import com.practice.aulaequilibrio.util.Dialogs;
+import com.practice.aulaequilibrio.util.Validations;
+import com.practice.aulaequilibrio.util.ValidationException;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
+
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+
 public class ClassroomController {
     @FXML private BorderPane root;
     @FXML private TableView<Classroom> classroomTable;
     @FXML private TableView<ClassroomType> typeTable;
-    @FXML private TableColumn<Classroom,String> codeColumn,capacityColumn,classroomTypeColumn;
-    @FXML private TableColumn<ClassroomType,String> typeNameColumn;
-    @FXML private ComboBox<ClassroomType> typeFilter;
-    @FXML private Label status;
-    private final ClassroomDAO classrooms=new ClassroomDAO();
-    private final ClassroomTypeDAO types=new ClassroomTypeDAO();
+    @FXML private TableColumn<Classroom, String> codeColumn, capacityColumn, classroomTypeColumn, stateColumn;
+    @FXML private TableColumn<ClassroomType, String> typeNameColumn, descriptionColumn;
+    @FXML private Label status, classroomScope;
+    @FXML private TextField search;
+    @FXML private ComboBox<ClassroomStatus> stateFilter;
+    @FXML private Button editClassroomButton, deleteClassroomButton, editTypeButton, deleteTypeButton, showAllButton;
+
+    private final ClassroomService service = new ClassroomService();
+    private final ObservableList<Classroom> roomRows = FXCollections.observableArrayList();
+    private final FilteredList<Classroom> filtered = new FilteredList<>(roomRows);
+    private final SimpleBooleanProperty busy = new SimpleBooleanProperty();
     private boolean refreshing;
+
+    private record Catalogs(List<ClassroomType> types, List<Classroom> rooms) {}
+
     @FXML private void initialize() {
-        classroomTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);typeTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        codeColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getCodigo()));
-        capacityColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getCapacidad().toString()));
-        classroomTypeColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getType().getName()));
-        typeNameColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getName()));
-        classroomTable.setPlaceholder(new Label("Agregue un aula para comenzar."));typeTable.setPlaceholder(new Label("Agregue primero un tipo, por ejemplo Laboratorio."));refresh();
+        codeColumn.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getCodigo()));
+        capacityColumn.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getCapacidad().toString()));
+        classroomTypeColumn.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getType().getName()));
+        stateColumn.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getState().toString()));
+        typeNameColumn.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getName()));
+        descriptionColumn.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getDescription()));
+        classroomTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        typeTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        var sorted = new SortedList<>(filtered);
+        sorted.comparatorProperty().bind(classroomTable.comparatorProperty());
+        classroomTable.setItems(sorted);
+        root.disableProperty().bind(busy);
+        var noRoom = classroomTable.getSelectionModel().selectedItemProperty().isNull();
+        editClassroomButton.disableProperty().bind(noRoom);
+        deleteClassroomButton.disableProperty().bind(noRoom);
+        var noType = typeTable.getSelectionModel().selectedItemProperty().isNull();
+        editTypeButton.disableProperty().bind(noType);
+        deleteTypeButton.disableProperty().bind(noType);
+        showAllButton.disableProperty().bind(noType);
+        stateFilter.getItems().add(null);
+        stateFilter.getItems().addAll(ClassroomStatus.values());
+        stateFilter.setCellFactory(list -> new ListCell<>() {
+            @Override protected void updateItem(ClassroomStatus item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : item == null ? "Todos los estados" : item.toString());
+            }
+        });
+        search.textProperty().addListener((obs, before, after) -> filter());
+        stateFilter.valueProperty().addListener((obs, before, after) -> filter());
+        typeTable.getSelectionModel().selectedItemProperty().addListener((obs, before, after) -> {
+            if (!refreshing) filter();
+        });
+        refresh();
     }
+
     @FXML private void refresh() {
-        root.setDisable(true);status.setText("Cargando…");
-        Thread thread=new Thread(() -> {
-            try {
-                List<Classroom> rooms=classrooms.listar();List<ClassroomType> categories=types.listar();
-                Platform.runLater(() -> {
-                    refreshing=true;classroomTable.setItems(FXCollections.observableArrayList(rooms));typeTable.setItems(FXCollections.observableArrayList(categories));
-                    typeFilter.getItems().clear();typeFilter.getItems().add(null);typeFilter.getItems().addAll(categories);typeFilter.setValue(null);refreshing=false;
-                    root.setDisable(false);status.setText(rooms.size()+" aulas · "+categories.size()+" tipos");
-                });
-            }catch(Exception ex){Platform.runLater(() -> {root.setDisable(false);status.setText("No se pudieron cargar los datos.");error(ex);});}
-        },"consultar-aulas");thread.setDaemon(true);thread.start();
+        ClassroomType selected = typeTable.getSelectionModel().getSelectedItem();
+        Integer typeId = selected == null ? null : selected.getId();
+        run("Catálogos actualizados.", () -> new Catalogs(service.listTypes(), service.listClassrooms(null)), result -> {
+            refreshing = true;
+            typeTable.getItems().setAll(result.types());
+            typeTable.getSelectionModel().clearSelection();
+            result.types().stream().filter(t -> t.getId().equals(typeId)).findFirst()
+                    .ifPresent(typeTable.getSelectionModel()::select);
+            roomRows.setAll(result.rooms());
+            refreshing = false;
+            filter();
+        });
     }
-    @FXML private void filter() {
-        if(refreshing)return;ClassroomType selected=typeFilter.getValue();root.setDisable(true);
-        Thread thread=new Thread(() -> {
-            try {List<Classroom> rooms=selected==null?classrooms.listar():classrooms.listarPorTipo(selected.getId());Platform.runLater(() -> {classroomTable.getItems().setAll(rooms);root.setDisable(false);status.setText(rooms.size()+" aulas encontradas");});}
-            catch(Exception ex){Platform.runLater(() -> {root.setDisable(false);error(ex);});}
-        },"filtrar-aulas");thread.setDaemon(true);thread.start();
+
+    @FXML private void showAllClassrooms() {
+        typeTable.getSelectionModel().clearSelection();
     }
-    @FXML private void addClassroom(){editClassroom(null);}
-    @FXML private void editSelectedClassroom(){Classroom selected=classroomTable.getSelectionModel().getSelectedItem();if(selected==null){info("Seleccione un aula.");return;}editClassroom(selected);}
-    private void editClassroom(Classroom selected) {
-        if(typeTable.getItems().isEmpty()){info("Agregue primero un tipo de aula en la pestaña Tipos de aula.");return;}
-        Dialog<Void> dialog=dialog(selected==null?"Agregar aula":"Editar aula");
-        TextField code=new TextField(selected==null?"":selected.getCodigo());TextField capacity=new TextField(selected==null?"":selected.getCapacidad().toString());
-        ComboBox<ClassroomType> type=new ComboBox<>(FXCollections.observableArrayList(typeTable.getItems()));type.setPromptText("Seleccione un tipo");type.setMaxWidth(Double.MAX_VALUE);
-        if(selected!=null)for(ClassroomType option:type.getItems())if(option.getId().equals(selected.getType().getId()))type.setValue(option);
-        GridPane grid=grid();grid.addRow(0,new Label("Código *"),code);grid.addRow(1,new Label("Capacidad *"),capacity);grid.addRow(2,new Label("Tipo de aula *"),type);
-        Label feedback=feedback();VBox content=new VBox(16,grid,feedback);content.setPadding(new Insets(18));dialog.getDialogPane().setContent(content);
-        dialog.getDialogPane().lookupButton(ButtonType.OK).addEventFilter(ActionEvent.ACTION,event -> {
-            event.consume();try {
-                String normalized=code.getText().trim();if(normalized.isBlank()||normalized.length()>20)throw new IllegalArgumentException("Ingrese un código de hasta 20 caracteres.");
-                int count;try{count=Integer.parseInt(capacity.getText().trim());}catch(NumberFormatException ex){throw new IllegalArgumentException("La capacidad debe ser un número entero mayor que cero.");}
-                if(count<=0)throw new IllegalArgumentException("La capacidad debe ser mayor que cero.");if(type.getValue()==null)throw new IllegalArgumentException("Seleccione un tipo de aula.");
-                // Mantener el id y la revisión para detectar ediciones simultáneas.
-                Classroom value=selected==null?new Classroom():selected;String oldCode=value.getCodigo();Integer oldCapacity=value.getCapacidad();ClassroomType oldType=value.getType();
-                value.setCodigo(normalized);value.setCapacidad(count);value.setType(type.getValue());
-                save(dialog,feedback,() -> {try{classrooms.guardar(value);}catch(RuntimeException ex){value.setCodigo(oldCode);value.setCapacidad(oldCapacity);value.setType(oldType);throw ex;}});
-            }catch(Exception ex){feedback.setText(message(ex));}
-        });dialog.showAndWait();
+
+    private void filter() {
+        ClassroomType type = typeTable.getSelectionModel().getSelectedItem();
+        ClassroomStatus state = stateFilter.getValue();
+        String query = search.getText().strip().toLowerCase(Locale.ROOT);
+        Classroom selected = classroomTable.getSelectionModel().getSelectedItem();
+        filtered.setPredicate(room -> (type == null || room.getType().getId().equals(type.getId()))
+                && (state == null || room.getState() == state)
+                && (room.getCodigo() + " " + room.getType().getName()).toLowerCase(Locale.ROOT).contains(query));
+        if (selected != null && filtered.contains(selected)) classroomTable.getSelectionModel().select(selected);
+        else classroomTable.getSelectionModel().clearSelection();
+        classroomScope.setText(type == null ? "Todos los tipos" : type.getName());
+        status.setText(filtered.size() + " aulas visibles · " + roomRows.size() + " registradas");
     }
-    @FXML private void addType(){editType(null);}
-    @FXML private void editSelectedType(){ClassroomType selected=typeTable.getSelectionModel().getSelectedItem();if(selected==null){info("Seleccione un tipo.");return;}editType(selected);}
-    private void editType(ClassroomType selected) {
-        Dialog<Void> dialog=dialog(selected==null?"Agregar tipo de aula":"Editar tipo de aula");TextField name=new TextField(selected==null?"":selected.getName());Label feedback=feedback();VBox content=new VBox(12,new Label("Nombre *"),name,feedback);content.setPadding(new Insets(18));dialog.getDialogPane().setContent(content);
-        dialog.getDialogPane().lookupButton(ButtonType.OK).addEventFilter(ActionEvent.ACTION,event -> {
-            event.consume();String text=name.getText().trim();if(text.isBlank()||text.length()>60){feedback.setText("Ingrese un nombre de hasta 60 caracteres.");return;}
-            ClassroomType value=selected==null?new ClassroomType():selected;String old=value.getName();value.setName(text);
-            save(dialog,feedback,() -> {try{types.guardar(value);}catch(RuntimeException ex){value.setName(old);throw ex;}});
-        });dialog.showAndWait();
-    }
-    private void save(Dialog<Void> dialog,Label feedback,Runnable operation) {
-        dialog.getDialogPane().setDisable(true);feedback.setText("Guardando…");Thread thread=new Thread(() -> {
-            try{operation.run();Platform.runLater(() -> {dialog.getDialogPane().setDisable(false);dialog.close();refresh();});}
-            catch(Exception ex){Platform.runLater(() -> {dialog.getDialogPane().setDisable(false);feedback.setText(message(ex));});}
-        },"guardar-aulas");thread.setDaemon(true);thread.start();
-    }
-    @FXML private void deleteClassroom(){Classroom value=classroomTable.getSelectionModel().getSelectedItem();if(value==null){info("Seleccione un aula.");return;}remove("¿Eliminar el aula "+value.getCodigo()+"?",() -> classrooms.eliminar(value));}
-    @FXML private void deleteType(){ClassroomType value=typeTable.getSelectionModel().getSelectedItem();if(value==null){info("Seleccione un tipo.");return;}remove("¿Eliminar el tipo "+value.getName()+"?",() -> types.eliminar(value));}
-    private void remove(String question,Runnable operation) {
-        Alert confirm=new Alert(Alert.AlertType.CONFIRMATION,question,ButtonType.OK,ButtonType.CANCEL);confirm.initOwner(root.getScene().getWindow());confirm.setHeaderText("Confirmar eliminación");if(confirm.showAndWait().orElse(ButtonType.CANCEL)!=ButtonType.OK)return;
-        root.setDisable(true);Thread thread=new Thread(() -> {try{operation.run();Platform.runLater(this::refresh);}catch(Exception ex){Platform.runLater(() -> {root.setDisable(false);error(ex);});}},"eliminar-aulas");thread.setDaemon(true);thread.start();
-    }
-    private Dialog<Void> dialog(String title){Dialog<Void> dialog=new Dialog<>();dialog.initOwner(root.getScene().getWindow());dialog.setTitle(title);dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK,ButtonType.CANCEL);((Button)dialog.getDialogPane().lookupButton(ButtonType.OK)).setText("Guardar");dialog.getDialogPane().setPrefWidth(460);return dialog;}
-    private GridPane grid(){GridPane grid=new GridPane();grid.setHgap(16);grid.setVgap(14);return grid;}
-    private Label feedback(){Label label=new Label("Todos los campos son obligatorios.");label.setWrapText(true);label.setMaxWidth(400);return label;}
-    private void info(String text){Alert alert=new Alert(Alert.AlertType.INFORMATION,text,ButtonType.OK);alert.setHeaderText(null);alert.initOwner(root.getScene().getWindow());alert.showAndWait();}
-    private void error(Exception ex){Alert alert=new Alert(Alert.AlertType.ERROR,message(ex),ButtonType.OK);alert.setHeaderText("No se completó la operación");alert.initOwner(root.getScene().getWindow());alert.showAndWait();}
-    private String message(Exception ex){
-        for(Throwable cause=ex;cause!=null;cause=cause.getCause()) {
-            if(cause instanceof IllegalArgumentException)return cause.getMessage();
-            if(cause instanceof org.hibernate.exception.ConstraintViolationException)return "No se puede completar: el valor está duplicado o el registro tiene referencias. Revise las aulas asociadas.";
-            if(cause instanceof org.hibernate.exception.JDBCConnectionException)return "No se pudo conectar a PostgreSQL. Revise el servicio y la configuración local.";
+
+    @FXML private void addClassroom() { roomForm(null); }
+    @FXML private void editSelectedClassroom() { roomForm(classroomTable.getSelectionModel().getSelectedItem()); }
+
+    private void roomForm(Classroom selected) {
+        if (typeTable.getItems().isEmpty()) {
+            Dialogs.info(root, "Tipos de aula", "Registra primero un tipo de aula en el panel lateral.");
+            return;
         }
-        return "No se completó la operación. Actualice la lista y revise la conexión a PostgreSQL.";
+        TextField code = new TextField(selected == null ? "" : selected.getCodigo());
+        TextField capacity = new TextField(selected == null ? "" : selected.getCapacidad().toString());
+        ComboBox<ClassroomType> type = new ComboBox<>(FXCollections.observableArrayList(typeTable.getItems()));
+        type.setMaxWidth(Double.MAX_VALUE);
+        ClassroomType initial = selected == null ? typeTable.getSelectionModel().getSelectedItem() : selected.getType();
+        if (initial != null) type.getItems().stream().filter(t -> t.getId().equals(initial.getId()))
+                .findFirst().ifPresent(type::setValue);
+        ComboBox<ClassroomStatus> state = new ComboBox<>(FXCollections.observableArrayList(ClassroomStatus.values()));
+        state.setValue(selected == null ? ClassroomStatus.DISPONIBLE : selected.getState());
+        Label feedback = feedback();
+        VBox fields = new VBox(8, new Label("Código *"), code, new Label("Capacidad *"), capacity,
+                new Label("Tipo *"), type, new Label("Estado *"), state, feedback);
+        Dialogs.form(root, selected == null ? "Nueva aula" : "Editar aula", fields, (pane, close) -> {
+            try {
+                int seats = Validations.positiveInteger(capacity.getText(), "capacidad");
+                String enteredCode = code.getText();
+                Integer typeId = type.getValue() == null ? null : type.getValue().getId();
+                ClassroomStatus enteredState = state.getValue();
+                save(pane, close, feedback, () -> service.saveClassroom(selected == null ? null : selected.getId(),
+                        selected == null ? 0 : selected.getRevision(), enteredCode, seats, typeId, enteredState));
+            } catch (RuntimeException exception) { feedback.setText(message(exception)); }
+        });
+    }
+
+    @FXML private void addType() { typeForm(null); }
+    @FXML private void editSelectedType() { typeForm(typeTable.getSelectionModel().getSelectedItem()); }
+
+    private void typeForm(ClassroomType selected) {
+        TextField name = new TextField(selected == null ? "" : selected.getName());
+        TextField description = new TextField(selected == null ? "" : Objects.toString(selected.getDescription(), ""));
+        Label feedback = feedback();
+        VBox fields = new VBox(8, new Label("Nombre *"), name, new Label("Descripción"), description, feedback);
+        Dialogs.form(root, selected == null ? "Nuevo tipo de aula" : "Editar tipo de aula", fields, (pane, close) -> {
+            String enteredName = name.getText();
+            String enteredDescription = description.getText();
+            save(pane, close, feedback, () -> service.saveType(selected == null ? null : selected.getId(),
+                    selected == null ? 0 : selected.getRevision(), enteredName, enteredDescription));
+        });
+    }
+
+    private void save(DialogPane pane, Runnable close, Label feedback, Runnable action) {
+        pane.setDisable(true);
+        feedback.setText("Guardando…");
+        Task<Void> task = new Task<>() {
+            @Override protected Void call() {
+                action.run();
+                return null;
+            }
+        };
+        task.setOnSucceeded(event -> {
+            pane.setDisable(false);
+            close.run();
+            refresh();
+        });
+        task.setOnFailed(event -> {
+            pane.setDisable(false);
+            feedback.setText(message(task.getException()));
+        });
+        start(task);
+    }
+
+    @FXML private void deleteClassroom() {
+        Classroom selected = classroomTable.getSelectionModel().getSelectedItem();
+        if (selected != null) remove("¿Eliminar el aula " + selected.getCodigo() + "?", () -> service.deleteClassroom(selected));
+    }
+    @FXML private void deleteType() {
+        ClassroomType selected = typeTable.getSelectionModel().getSelectedItem();
+        if (selected != null) remove("¿Eliminar el tipo " + selected.getName() + "?", () -> service.deleteType(selected));
+    }
+
+    private void remove(String question, Runnable action) {
+        Dialogs.confirm(root, "Confirmar eliminación", question, () -> run("Registro eliminado.", () -> {
+            action.run();
+            return true;
+        }, ignored -> refresh()));
+    }
+
+    private <T> void run(String success, Callable<T> work, Consumer<T> apply) {
+        busy.set(true);
+        status.setText("Consultando PostgreSQL…");
+        Task<T> task = new Task<>() {
+            @Override protected T call() throws Exception { return work.call(); }
+        };
+        task.setOnSucceeded(event -> {
+            busy.set(false);
+            status.setText(success);
+            apply.accept(task.getValue());
+        });
+        task.setOnFailed(event -> {
+            busy.set(false);
+            status.setText("No se pudo completar la operación.");
+            Dialogs.error(root, "Aulas y tipos de aula", message(task.getException()));
+        });
+        start(task);
+    }
+
+    private static void start(Task<?> task) {
+        Thread worker = new Thread(task, "aulas-hibernate");
+        worker.setDaemon(true);
+        worker.start();
+    }
+    private static Label feedback() {
+        Label label = new Label();
+        label.setWrapText(true);
+        label.getStyleClass().add("field-error");
+        return label;
+    }
+    private static String message(Throwable exception) {
+        for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
+            if (cause instanceof IllegalArgumentException || cause instanceof ValidationException) return cause.getMessage();
+            if (cause instanceof org.hibernate.exception.ConstraintViolationException) {
+                return "El registro está duplicado o tiene referencias. Revisa las aulas y horarios asociados.";
+            }
+        }
+        return "No se pudo completar la operación. Revisa la conexión con PostgreSQL y actualiza la tabla.";
     }
 }

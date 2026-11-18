@@ -28,7 +28,10 @@ public class AulaEquilibrioApplication extends Application {
         stage.setMinWidth(1000);
         stage.setMinHeight(720);
         stage.setScene(scene);
+        stage.setMaximized(true);
         stage.show();
+        stage.setFullScreenExitHint("Pulsa Esc para volver al modo ventana.");
+        stage.setFullScreen(true);
     }
 
     @Override

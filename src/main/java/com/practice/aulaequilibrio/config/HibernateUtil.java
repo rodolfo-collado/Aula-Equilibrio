@@ -1,13 +1,5 @@
 package com.practice.aulaequilibrio.config;
 
-import com.practice.aulaequilibrio.model.Classroom;
-import com.practice.aulaequilibrio.model.ClassroomType;
-import com.practice.aulaequilibrio.model.Groupe;
-import com.practice.aulaequilibrio.model.Availability;
-import com.practice.aulaequilibrio.model.ScheduleAssignment;
-import com.practice.aulaequilibrio.model.ScheduleVersion;
-import com.practice.aulaequilibrio.model.Subject;
-import com.practice.aulaequilibrio.model.Teacher;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
@@ -39,10 +31,7 @@ public final class HibernateUtil {
 
         StandardServiceRegistry registry =
                 new StandardServiceRegistryBuilder()
-                        .applySetting(
-                                "jakarta.persistence.jdbc.driver",
-                                "org.postgresql.Driver"
-                        )
+                        .configure()
                         .applySetting(
                                 "jakarta.persistence.jdbc.url",
                                 required(dotenv, "DB_URL")
@@ -55,21 +44,19 @@ public final class HibernateUtil {
                                 "jakarta.persistence.jdbc.password",
                                 required(dotenv, "DB_PASSWORD")
                         )
-                        .applySetting("hibernate.hbm2ddl.auto", "update")
                         .build();
 
         try {
-            return new MetadataSources(registry)
-                    .addAnnotatedClass(Teacher.class)
-                    .addAnnotatedClass(Availability.class)
-                    .addAnnotatedClass(Groupe.class)
-                    .addAnnotatedClass(Classroom.class)
-                    .addAnnotatedClass(ClassroomType.class)
-                    .addAnnotatedClass(Subject.class)
-                    .addAnnotatedClass(ScheduleVersion.class)
-                    .addAnnotatedClass(ScheduleAssignment.class)
+            SessionFactory factory = new MetadataSources(registry)
                     .buildMetadata()
                     .buildSessionFactory();
+            try {
+                executeScript(factory, "migrate_time_intervals.sql");
+                return factory;
+            } catch (RuntimeException exception) {
+                factory.close();
+                throw exception;
+            }
         } catch (RuntimeException exception) {
             StandardServiceRegistryBuilder.destroy(registry);
             throw exception;
@@ -104,12 +91,16 @@ public final class HibernateUtil {
     }
 
     public static void loadDemoData() {
-        try (var script = HibernateUtil.class.getResourceAsStream("/sql/demo_seed.sql")) {
+        executeScript(getSessionFactory(), "demo_seed.sql");
+    }
+
+    private static void executeScript(SessionFactory factory, String name) {
+        try (var script = HibernateUtil.class.getResourceAsStream("/sql/" + name)) {
             if (script == null) {
-                throw new IllegalStateException("No se encontró la semilla de demostración.");
+                throw new IllegalStateException("No se encontró el script " + name);
             }
             String sql = new String(script.readAllBytes(), StandardCharsets.UTF_8);
-            getSessionFactory().inTransaction(session -> session.createNativeMutationQuery(sql).executeUpdate());
+            factory.inTransaction(session -> session.createNativeMutationQuery(sql).executeUpdate());
         } catch (IOException exception) {
             throw new UncheckedIOException("No se pudo leer la semilla de demostración.", exception);
         }

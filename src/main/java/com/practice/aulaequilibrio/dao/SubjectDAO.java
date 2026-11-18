@@ -1,12 +1,12 @@
-package com.practice.aulaequilibrio.repository;
+package com.practice.aulaequilibrio.dao;
 
 import com.practice.aulaequilibrio.model.Subject;
 
 import java.util.List;
 
-public class SubjectRepository extends HibernateRepository<Subject> {
+public class SubjectDAO extends IDAO<Subject> {
 
-    public SubjectRepository() {
+    public SubjectDAO() {
         super(Subject.class, Subject::getId);
     }
 
