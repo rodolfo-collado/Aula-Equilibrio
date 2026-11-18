@@ -23,6 +23,21 @@ class ReportEngineTest {
         assertEquals("PK", new String(xlsx, 0, 2, StandardCharsets.US_ASCII), "XLSX es un archivo ZIP");
     }
 
+    @Test void baseTemplateShowsTitleAndEmptyMessageWithoutRows() throws Exception {
+        var print = ReportEngine.fill("/com/practice/aulaequilibrio/reports/plantilla-base.jrxml",
+                Map.of("TITULO", "Reporte vacío"), List.of());
+        var texts = texts(print);
+        assertTrue(texts.contains("Reporte vacío"));
+        assertTrue(texts.contains("No hay datos para esta selección."));
+        assertTrue(texts.contains("Página 1 de"));
+    }
+
+    static List<String> texts(net.sf.jasperreports.engine.JasperPrint print) {
+        return print.getPages().stream().flatMap(page -> page.getElements().stream())
+                .filter(net.sf.jasperreports.engine.JRPrintText.class::isInstance)
+                .map(element -> ((net.sf.jasperreports.engine.JRPrintText) element).getFullText()).toList();
+    }
+
     @Test void missingDesignExplainsWhichFileIsAbsent() {
         var error = assertThrows(net.sf.jasperreports.engine.JRException.class,
                 () -> ReportEngine.fill("/no-existe.jrxml", Map.of(), List.of()));
