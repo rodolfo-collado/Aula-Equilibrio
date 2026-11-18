@@ -11,6 +11,9 @@
                 <Tab text="Horario">
                     <fx:include source="report-schedule.fxml"/>
                 </Tab>
+                <Tab text="Carga docente">
+                    <fx:include source="report-teachers.fxml"/>
+                </Tab>
                 <Tab text="Ocupación de aulas">
                     <fx:include source="report-rooms.fxml"/>
                 </Tab>

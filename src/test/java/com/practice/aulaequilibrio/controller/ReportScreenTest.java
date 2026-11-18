@@ -45,7 +45,9 @@ class ReportScreenTest {
             Parent root = fx(() -> {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/practice/aulaequilibrio/views/report-view.fxml"));
                 loader.setControllerFactory(type -> type == ScheduleReportController.class
-                        ? new ScheduleReportController(service) : construct(type));
+                        ? new ScheduleReportController(service)
+                        : type == TeacherLoadReportController.class ? new TeacherLoadReportController(service)
+                        : construct(type));
                 Parent view = loader.load();
                 Stage stage = new Stage(); stage.setScene(new Scene(view, 1000, 660)); stage.show();
                 return view;
@@ -62,6 +64,11 @@ class ReportScreenTest {
             });
             assertEquals(1, fx(() -> sessions.getItems().size()));
             assertFalse(fx(() -> root.lookup("#pdfButton").isDisabled()));
+
+            TableView<?> teachers = (TableView<?>) root.lookup("#teachers");
+            waitFor(() -> teachers.getItems().size() == 2);
+            assertEquals("2 docentes · 0 activos sin sesiones asignadas.",
+                    fx(() -> ((Label) teachers.getParent().lookup("#status")).getText()));
             fx(() -> { root.getScene().getWindow().hide(); return null; });
         }
     }
