@@ -10,6 +10,20 @@ Pulsa la entrada de una ventana activa en la barra superior para minimizarla. Si
 
 Pulsa una ventana interna para traerla al frente. Los avisos, las confirmaciones y los formularios de aulas y horarios se muestran dentro del escritorio. Resuelve el cuadro activo para continuar con los módulos.
 
+## Dashboard institucional
+
+El homepage presenta facultades y carreras, asignaturas únicas, grupos, docentes activos, aulas disponibles y sus plazas. La tabla por facultad muestra sus carreras, asignaturas, grupos, aulas utilizadas y sesiones asignadas. El ranking compara las cinco facultades que utilizan más aulas distintas; los pendientes permiten abrir el módulo correspondiente para revisar grupos sin profesor o sin horario, docentes activos sin disponibilidad y otros datos incompletos.
+
+Selecciona una **versión de horario** para consultar uso de aulas y cobertura. Al iniciar se elige la más reciente por fecha e identificador; las alternativas se analizan por separado. Las consultas se ejecutan en segundo plano mediante `DashboardController → DashboardService → DashboardDAO`. Pulsa **Actualizar** o vuelve al dashboard desde otro módulo para refrescarlo. Si falla la conexión, se conserva la última lectura con un aviso y una opción de reintento.
+
+Los indicadores tienen estas reglas:
+
+- Las asignaturas se cuentan una sola vez dentro de una facultad, aunque varias de sus carreras las incluyan. También se incluyen las optativas.
+- El modelo vincula las facultades a los horarios mediante las asignaturas de sus planes. Una asignatura compartida atribuye sus grupos y uso de aulas a cada facultad relacionada: esas filas no se suman para obtener el total institucional ni identifican un propietario exclusivo del aula.
+- Un aula utilizada se cuenta una vez por facultad y versión, aunque tenga varias sesiones. El ranking mide cantidad de aulas distintas, no porcentaje de ocupación ni horas.
+- La cobertura compara sesiones asignadas con las sesiones semanales requeridas por cada grupo con asignatura. Cada grupo aporta como máximo el 100% de sus sesiones requeridas. Los grupos antiguos sin asignatura quedan fuera de este cálculo. Sin versión o sin sesiones requeridas se muestra **—**.
+- La cobertura no comprueba cruces ni reemplaza la validación de horarios. Un aula **disponible** está habilitada según su estado; puede estar ocupada en algunos bloques. Los catálogos y el resumen por facultad incluyen registros activos e inactivos, mientras que la tarjeta de docentes muestra los activos.
+
 ## Ejecutar
 
 Hibernate registra las entidades en `src/main/resources/hibernate.cfg.xml`. La aplicación usa un solo `SessionFactory` y obtiene la conexión de `.env` o de las variables de entorno.
@@ -82,5 +96,7 @@ Puedes crearlos desde la pantalla o ejecutar `sql/rodolfo_demo.sql` en tu base P
 Cinco pruebas de integración Hibernate usan una base H2 temporal en modo PostgreSQL: CRUD, filtrado entre dos docentes, edición y eliminación de bloques, validaciones, reasignación y protección de claves foráneas. No necesitan tu `.env` ni alteran tu base de trabajo.
 
 Una sexta prueba carga el FXML y opera los controles JavaFX para comprobar el recorrido de revisión y el mensaje al borrar un docente referenciado. Requiere un servidor gráfico (`DISPLAY`); sin él se omite esa prueba. Las pruebas H2 no sustituyen la comprobación final con tu instalación PostgreSQL.
+
+Las pruebas del dashboard añaden tres casos de integración ORM: base vacía, asignaturas compartidas sin duplicados y separación de versiones, y conteos de pendientes/capacidad. Otra prueba JavaFX carga el homepage completo, cambia de versión, refresca datos y verifica la recuperación después de un error de conexión simulado.
 
 También se corrigieron el nombre de clase y el paquete de `Classroom.java`, que en la base original impedían compilar.

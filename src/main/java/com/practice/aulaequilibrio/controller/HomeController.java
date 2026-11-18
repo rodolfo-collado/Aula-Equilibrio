@@ -1,6 +1,7 @@
 package com.practice.aulaequilibrio.controller;
 
 import com.practice.aulaequilibrio.util.Dialogs;
+import com.practice.aulaequilibrio.model.DashboardData.Destination;
 import com.practice.aulaequilibrio.view.ScheduleView;
 import com.practice.aulaequilibrio.view.mdi.MdiDesktop;
 import javafx.application.Platform;
@@ -14,7 +15,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 
 import java.io.IOException;
 
@@ -25,7 +25,9 @@ public class HomeController {
     private static final PseudoClass MODULE_ACTIVE = PseudoClass.getPseudoClass("module-active");
 
     @FXML
-    private VBox home;
+    private Parent home;
+    @FXML
+    private DashboardController homeController;
     @FXML
     private MdiDesktop desktop;
     @FXML
@@ -36,7 +38,11 @@ public class HomeController {
     @FXML
     private void initialize() {
         taskbar.disableProperty().bind(desktop.dialogShowingProperty());
-        desktop.activeTitleProperty().addListener((observable, previous, current) -> updateTaskbar());
+        homeController.setNavigator(this::openDestination);
+        desktop.activeTitleProperty().addListener((observable, previous, current) -> {
+            updateTaskbar();
+            if (DASHBOARD.equals(current)) homeController.refresh();
+        });
         desktop.getChildrenUnmodifiable().addListener((ListChangeListener<Node>) change -> updateTaskbar());
         desktop.open(DASHBOARD, home, 1000, 660, false);
     }
@@ -91,9 +97,14 @@ public class HomeController {
         if (activateExisting(event, title)) {
             return;
         }
+        openCatalog(title, shortcut.getUserData().toString());
+    }
+
+    private void openCatalog(String title, String file) {
+        if (desktop.activate(title)) return;
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(
-                    "/com/practice/aulaequilibrio/views/" + shortcut.getUserData()));
+                    "/com/practice/aulaequilibrio/views/" + file));
             Parent catalog = loader.load();
             if (loader.getController() instanceof CatalogController controller) {
                 controller.attachDesktop(desktop, title);
@@ -110,9 +121,24 @@ public class HomeController {
         if (activateExisting(event, "Horarios")) {
             return;
         }
+        openSchedules();
+    }
+
+    private void openSchedules() {
+        if (desktop.activate("Horarios")) return;
         ScheduleView schedules = new ScheduleView();
         schedules.load();
         desktop.open("Horarios", schedules, 900, 540, true);
+    }
+
+    private void openDestination(Destination destination) {
+        switch (destination) {
+            case FACULTIES -> openCatalog("Facultades y carreras", "academic-structure-view.fxml");
+            case TEACHERS -> openCatalog("Docentes y disponibilidad", "catalog-view.fxml");
+            case OFFER -> openCatalog("Oferta académica", "academic-offer-view.fxml");
+            case ROOMS -> openCatalog("Aulas", "classroom-view.fxml");
+            case SCHEDULES -> openSchedules();
+        }
     }
 
     private boolean activateExisting(ActionEvent event, String title) {

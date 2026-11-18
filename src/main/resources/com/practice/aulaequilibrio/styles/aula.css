@@ -402,3 +402,80 @@
 .field-error {
     -fx-text-fill: -aula-danger;
 }
+
+.dashboard-scroll,
+.dashboard-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+
+.dashboard-page {
+    -fx-padding: 20 22 24;
+}
+
+.dashboard-hero {
+    -fx-padding: 22 25;
+}
+
+.dashboard-title {
+    -fx-font-size: 28px;
+}
+
+.button.dashboard-shortcut {
+    -fx-background-color: #ffffff1c;
+    -fx-text-fill: #edf9f5;
+    -fx-border-color: #ffffff30;
+}
+
+.button.dashboard-shortcut:hover {
+    -fx-background-color: #ffffff30;
+}
+
+.dashboard-metric {
+    -fx-padding: 15 18;
+    -fx-min-height: 145;
+    -fx-background-color: -aula-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -aula-border;
+    -fx-border-radius: 10;
+}
+
+.dashboard-metric-accent {
+    -fx-background-color: #e9f5f0;
+    -fx-border-color: #b7dace;
+}
+
+.dashboard-number {
+    -fx-font-size: 31px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -aula-accent;
+}
+
+.dashboard-page .progress-bar > .track {
+    -fx-background-color: #dce8e4;
+    -fx-background-insets: 0;
+    -fx-background-radius: 5;
+}
+
+.dashboard-page .progress-bar > .bar {
+    -fx-background-color: -aula-accent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 5;
+    -fx-padding: 4;
+}
+
+.dashboard-ranking-row {
+    -fx-padding: 5 4 9 0;
+}
+
+.dashboard-notice {
+    -fx-background-color: #f4f8fb;
+    -fx-background-radius: 7;
+    -fx-padding: 11;
+}
+
+.button.dashboard-review {
+    -fx-background-color: transparent;
+    -fx-padding: 4 0;
+    -fx-text-fill: -aula-accent;
+}

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<ScrollPane fx:id="dashboard" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.practice.aulaequilibrio.controller.DashboardController"
+            fitToWidth="true" hbarPolicy="NEVER" styleClass="dashboard-scroll">
+    <content>
+        <VBox spacing="18" styleClass="dashboard-page">
+            <VBox spacing="9" styleClass="hero,dashboard-hero">
+                <Label text="AULA EQUILIBRIO · VISTA INSTITUCIONAL" styleClass="hero-caption"/>
+                <Label text="Tu planificación, en perspectiva" wrapText="true" styleClass="hero-title,dashboard-title"/>
+                <Label text="Oferta académica, recursos y pendientes en un solo lugar." wrapText="true" styleClass="hero-description"/>
+                <FlowPane hgap="8" vgap="8">
+                    <Button text="Planificar horarios" userData="SCHEDULES" onAction="#navigate" styleClass="hero-action"/>
+                    <Button text="Facultades y carreras" userData="FACULTIES" onAction="#navigate" styleClass="dashboard-shortcut"/>
+                    <Button text="Oferta académica" userData="OFFER" onAction="#navigate" styleClass="dashboard-shortcut"/>
+                    <Button text="Docentes" userData="TEACHERS" onAction="#navigate" styleClass="dashboard-shortcut"/>
+                    <Button text="Aulas" userData="ROOMS" onAction="#navigate" styleClass="dashboard-shortcut"/>
+                </FlowPane>
+            </VBox>
+            <VBox spacing="8" styleClass="panel">
+                <Label text="Versión de horario para analizar" styleClass="card-title"/>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <ComboBox fx:id="version" promptText="Sin versiones registradas" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="refreshButton" text="Actualizar" onAction="#refresh" styleClass="primary"/>
+                </HBox>
+                <Label fx:id="summary" text="Cargando indicadores…" wrapText="true"/>
+                <Label fx:id="updated" styleClass="muted" wrapText="true"/>
+                <Label fx:id="error" styleClass="field-error" wrapText="true"/>
+            </VBox>
+            <TilePane fx:id="metrics" hgap="12" vgap="12" prefColumns="3" prefTileWidth="260" tileAlignment="TOP_LEFT">
+                <VBox spacing="5" maxWidth="Infinity" styleClass="dashboard-metric">
+                    <Label text="Facultades" styleClass="muted"/>
+                    <Label fx:id="facultyCount" text="—" styleClass="dashboard-number"/>
+                    <Label fx:id="facultyDetail" text="Estructura académica" wrapText="true" styleClass="muted"/>
+                </VBox>
+                <VBox spacing="5" maxWidth="Infinity" styleClass="dashboard-metric">
+                    <Label text="Asignaturas" styleClass="muted"/>
+                    <Label fx:id="subjectCount" text="—" styleClass="dashboard-number"/>
+                    <Label text="Asignaturas únicas del catálogo" wrapText="true" styleClass="muted"/>
+                </VBox>
+                <VBox spacing="5" maxWidth="Infinity" styleClass="dashboard-metric">
+                    <Label text="Grupos" styleClass="muted"/>
+                    <Label fx:id="groupCount" text="—" styleClass="dashboard-number"/>
+                    <Label text="Oferta de grupos registrada" wrapText="true" styleClass="muted"/>
+                </VBox>
+                <VBox spacing="5" maxWidth="Infinity" styleClass="dashboard-metric">
+                    <Label text="Docentes activos" styleClass="muted"/>
+                    <Label fx:id="teacherCount" text="—" styleClass="dashboard-number"/>
+                    <Label fx:id="teacherDetail" wrapText="true" styleClass="muted"/>
+                </VBox>
+                <VBox spacing="5" maxWidth="Infinity" styleClass="dashboard-metric">
+                    <Label text="Aulas disponibles / total" styleClass="muted"/>
+                    <Label fx:id="roomCount" text="—" styleClass="dashboard-number"/>
+                    <Label fx:id="roomDetail" wrapText="true" styleClass="muted"/>
+                </VBox>
+                <VBox spacing="5" maxWidth="Infinity" styleClass="dashboard-metric,dashboard-metric-accent">
+                    <Label text="Cobertura de sesiones" styleClass="muted"/>
+                    <Label fx:id="coverageCount" text="—" styleClass="dashboard-number"/>
+                    <ProgressBar fx:id="coverage" progress="0" maxWidth="Infinity"/>
+                    <Label fx:id="coverageDetail" wrapText="true" styleClass="muted"/>
+                </VBox>
+            </TilePane>
+            <VBox spacing="10" styleClass="panel">
+                <Label text="Resumen por facultad" styleClass="card-title"/>
+                <Label text="Asignaturas únicas de sus planes, incluyendo optativas. Aulas y sesiones corresponden a la versión seleccionada."
+                       wrapText="true" styleClass="muted"/>
+                <TableView fx:id="faculties" prefHeight="250" minHeight="180">
+                    <placeholder><Label text="Registra una facultad y sus carreras para comenzar." wrapText="true"/></placeholder>
+                    <columns>
+                        <TableColumn fx:id="facultyName" text="Facultad" prefWidth="280" minWidth="150"/>
+                        <TableColumn fx:id="careers" text="Carreras" prefWidth="90"/>
+                        <TableColumn fx:id="subjects" text="Asignaturas" prefWidth="110"/>
+                        <TableColumn fx:id="groups" text="Grupos" prefWidth="85"/>
+                        <TableColumn fx:id="classrooms" text="Aulas usadas" prefWidth="120"/>
+                        <TableColumn fx:id="assignments" text="Sesiones" prefWidth="95"/>
+                    </columns>
+                </TableView>
+                <Label text="La atribución se hace por asignatura del plan. Si se comparte entre facultades, sus grupos y aulas figuran en cada una; las filas no se suman. Incluye registros activos e inactivos."
+                       wrapText="true" styleClass="muted"/>
+            </VBox>
+            <SplitPane fx:id="detailPanels" dividerPositions="0.5" prefHeight="400" styleClass="module-split">
+                <VBox spacing="10" minWidth="0" styleClass="panel">
+                    <Label text="¿Qué facultades usan más aulas?" styleClass="card-title" wrapText="true"/>
+                    <Label text="Top 5 · número de aulas distintas utilizadas, sin sumar capacidad ni horas." wrapText="true" styleClass="muted"/>
+                    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS" styleClass="dashboard-scroll">
+                        <content><VBox fx:id="ranking" spacing="12"/></content>
+                    </ScrollPane>
+                </VBox>
+                <VBox spacing="10" minWidth="0" styleClass="panel">
+                    <Label text="Pendientes para revisar" styleClass="card-title"/>
+                    <Label text="Accede al módulo correspondiente para completar los datos." wrapText="true" styleClass="muted"/>
+                    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS" styleClass="dashboard-scroll">
+                        <content><VBox fx:id="notices" spacing="10"/></content>
+                    </ScrollPane>
+                </VBox>
+            </SplitPane>
+            <Label text="Cobertura = sesiones asignadas frente a las requeridas por cada grupo con asignatura, con un máximo del 100% por grupo. Estos indicadores no validan cruces de horario. Aulas disponibles indica su estado, no que estén libres en todos los bloques."
+                   wrapText="true" styleClass="muted"/>
+        </VBox>
+    </content>
+</ScrollPane>
