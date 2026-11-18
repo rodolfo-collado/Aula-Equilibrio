@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "https://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <property name="jakarta.persistence.jdbc.driver">org.postgresql.Driver</property>
+        <property name="hibernate.hbm2ddl.auto">update</property>
+        <mapping class="com.practice.aulaequilibrio.model.Teacher"/>
+        <mapping class="com.practice.aulaequilibrio.model.Availability"/>
+        <mapping class="com.practice.aulaequilibrio.model.Groupe"/>
+        <mapping class="com.practice.aulaequilibrio.model.Classroom"/>
+        <mapping class="com.practice.aulaequilibrio.model.ClassroomType"/>
+        <mapping class="com.practice.aulaequilibrio.model.Subject"/>
+        <mapping class="com.practice.aulaequilibrio.model.ScheduleVersion"/>
+        <mapping class="com.practice.aulaequilibrio.model.ScheduleAssignment"/>
+        <mapping class="com.practice.aulaequilibrio.model.Faculty"/>
+        <mapping class="com.practice.aulaequilibrio.model.Career"/>
+        <mapping class="com.practice.aulaequilibrio.model.CareerSubject"/>
+    </session-factory>
+</hibernate-configuration>

@@ -1,7 +1,7 @@
 package com.practice.aulaequilibrio.service;
 
 import com.practice.aulaequilibrio.model.Groupe;
-import com.practice.aulaequilibrio.repository.GroupeRepository;
+import com.practice.aulaequilibrio.dao.GroupeDAO;
 import com.practice.aulaequilibrio.util.ErrorMessages;
 import com.practice.aulaequilibrio.util.ValidationException;
 import com.practice.aulaequilibrio.util.Validations;
@@ -14,14 +14,14 @@ public class GroupeService {
 
     private static final int MAX_NOMBRE = 40;
 
-    private final GroupeRepository repository;
+    private final GroupeDAO dao;
 
     public GroupeService() {
-        this(new GroupeRepository());
+        this(new GroupeDAO());
     }
 
     public List<Groupe> listAll() {
-        return repository.findAll();
+        return dao.findAll();
     }
 
     /**
@@ -32,17 +32,17 @@ public class GroupeService {
         int cantidad = Validations.positiveInteger(cantidadEstudiantes, "cantidad de estudiantes");
 
         try {
-            if (repository.existsByNombre(cleanNombre, id)) {
+            if (dao.existsByNombre(cleanNombre, id)) {
                 throw new ValidationException("Ya existe un grupo con el nombre \"" + cleanNombre + "\".");
             }
 
             Groupe groupe = id == null
                     ? new Groupe()
-                    : repository.findById(id).orElseThrow(() ->
+                    : dao.findById(id).orElseThrow(() ->
                     new ValidationException("El grupo ya no existe. Actualice la lista."));
             groupe.setNombre(cleanNombre);
             groupe.setCantidadEstudiantes(cantidad);
-            return repository.save(groupe);
+            return dao.save(groupe);
         } catch (ValidationException exception) {
             throw exception;
         } catch (RuntimeException exception) {
@@ -55,7 +55,7 @@ public class GroupeService {
             throw new ValidationException("Seleccione un grupo para eliminar.");
         }
         try {
-            if (!repository.deleteById(id)) {
+            if (!dao.deleteById(id)) {
                 throw new ValidationException("El grupo ya no existe. Actualice la lista.");
             }
         } catch (ValidationException exception) {

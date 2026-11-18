@@ -81,6 +81,7 @@
                 <targetPath>sql</targetPath>
                 <includes>
                     <include>demo_seed.sql</include>
+                    <include>migrate_time_intervals.sql</include>
                 </includes>
             </resource>
         </resources>

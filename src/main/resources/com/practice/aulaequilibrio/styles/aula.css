@@ -402,3 +402,120 @@
 .field-error {
     -fx-text-fill: -aula-danger;
 }
+
+.dashboard-scroll,
+.dashboard-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+
+.dashboard-page {
+    -fx-padding: 20 22 24;
+}
+
+.dashboard-hero {
+    -fx-padding: 22 25;
+}
+
+.dashboard-title {
+    -fx-font-size: 28px;
+}
+
+.button.dashboard-shortcut {
+    -fx-background-color: #ffffff1c;
+    -fx-text-fill: #edf9f5;
+    -fx-border-color: #ffffff30;
+}
+
+.button.dashboard-shortcut:hover {
+    -fx-background-color: #ffffff30;
+}
+
+.dashboard-metric {
+    -fx-padding: 15 18;
+    -fx-min-height: 145;
+    -fx-background-color: -aula-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -aula-border;
+    -fx-border-radius: 10;
+}
+
+.dashboard-metric-accent {
+    -fx-background-color: #e9f5f0;
+    -fx-border-color: #b7dace;
+}
+
+.dashboard-number {
+    -fx-font-size: 31px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -aula-accent;
+}
+
+.dashboard-page .progress-bar > .track {
+    -fx-background-color: #dce8e4;
+    -fx-background-insets: 0;
+    -fx-background-radius: 5;
+}
+
+.dashboard-page .progress-bar > .bar {
+    -fx-background-color: -aula-accent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 5;
+    -fx-padding: 4;
+}
+
+.dashboard-ranking-row {
+    -fx-padding: 5 4 9 0;
+}
+
+.dashboard-notice {
+    -fx-background-color: #f4f8fb;
+    -fx-background-radius: 7;
+    -fx-padding: 11;
+}
+
+.button.dashboard-review {
+    -fx-background-color: transparent;
+    -fx-padding: 4 0;
+    -fx-text-fill: -aula-accent;
+}
+
+.dashboard-page .default-color0.chart-pie { -fx-pie-color: #167e73; }
+.dashboard-page .default-color1.chart-pie { -fx-pie-color: #e5a444; }
+.dashboard-page .default-color2.chart-pie { -fx-pie-color: #73859c; }
+.dashboard-page .default-color0.chart-pie-legend-symbol { -fx-background-color: #167e73; }
+.dashboard-page .default-color1.chart-pie-legend-symbol { -fx-background-color: #e5a444; }
+.dashboard-page .default-color2.chart-pie-legend-symbol { -fx-background-color: #73859c; }
+.dashboard-page .chart-pie:hover { -fx-opacity: 0.8; -fx-cursor: hand; }
+.dashboard-page .chart-bar { -fx-bar-fill: #167e73; -fx-background-radius: 5 5 0 0; -fx-cursor: hand; }
+.dashboard-page .chart-bar:hover { -fx-bar-fill: #295f84; }
+.dashboard-page .chart-plot-background { -fx-background-color: #f4f8fb; }
+.dashboard-page .chart-legend { -fx-background-color: transparent; }
+
+.schedule-viewer { -fx-padding: 10 8 0 0; }
+.schedule-viewer .toggle-button { -fx-background-color: #e1ebf2; -fx-text-fill: -aula-ink; -fx-padding: 7 16; -fx-cursor: hand; }
+.schedule-viewer .toggle-button:selected { -fx-background-color: -aula-accent; -fx-text-fill: white; }
+.schedule-day-heading { -fx-font-weight: bold; -fx-padding: 12 8; -fx-text-fill: #29465f; }
+.schedule-time-heading { -fx-padding: 0 4; -fx-text-fill: -aula-muted; -fx-font-size: 11; }
+.schedule-day { -fx-background-color: white; -fx-border-color: #d5e0e9; -fx-cursor: hand; }
+.schedule-time-line { -fx-background-color: #e5edf3; }
+.schedule-day.schedule-drop-ok { -fx-background-color: #e2f3eb; -fx-border-color: #167e73; }
+.schedule-day.schedule-drop-error { -fx-background-color: #fae5df; -fx-border-color: #9e352f; }
+.schedule-slot { -fx-background-color: #ffffff; -fx-background-radius: 7; -fx-border-color: #d5e0e9; -fx-border-radius: 7; -fx-padding: 5; -fx-cursor: hand; }
+.schedule-slot:hover { -fx-background-color: #f0f8f5; -fx-border-color: #9ccbbd; }
+.schedule-empty { -fx-text-fill: #9badbc; -fx-padding: 25 12; -fx-font-size: 18; }
+.button.schedule-card { -fx-padding: 9; -fx-alignment: top-left; -fx-border-width: 0 0 0 4; -fx-background-radius: 5; -fx-border-radius: 4; -fx-pref-width: 150; }
+.schedule-card-title { -fx-font-weight: bold; -fx-font-size: 12; -fx-fill: -aula-ink; }
+.schedule-card-detail { -fx-font-size: 11; -fx-font-weight: normal; -fx-fill: -aula-ink; }
+.button.schedule-course-0 { -fx-background-color: #deeee7; -fx-border-color: #238368; }
+.button.schedule-course-1 { -fx-background-color: #e0ecf7; -fx-border-color: #3975a9; }
+.button.schedule-course-2 { -fx-background-color: #eee4f6; -fx-border-color: #8964ad; }
+.button.schedule-course-3 { -fx-background-color: #f7ecda; -fx-border-color: #b88931; }
+.button.schedule-course-4 { -fx-background-color: #dff0f1; -fx-border-color: #3c8a93; }
+.button.schedule-card-selected { -fx-effect: dropshadow(gaussian, #126c6370, 7, 0.3, 0, 0); }
+.schedule-slot.schedule-drop-ok { -fx-background-color: #d6eee4; -fx-border-color: #167e73; -fx-border-width: 2; }
+.schedule-slot.schedule-drop-error { -fx-background-color: #fae5df; -fx-border-color: #9e352f; -fx-border-width: 2; }
+.schedule-valid { -fx-text-fill: #126c63; }
+.schedule-page .combo-box:disabled { -fx-opacity: 1; -fx-background-color: #edf3f6; }
+.schedule-page .combo-box:disabled .list-cell { -fx-text-fill: #29465f; }
+.schedule-actions { -fx-background-color: white; -fx-padding: 10; -fx-border-color: #d5e0e9 transparent transparent transparent; }

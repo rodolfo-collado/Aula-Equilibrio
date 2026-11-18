@@ -22,6 +22,11 @@ public class Classroom {
     @JoinColumn(name="type_id",nullable=false,foreignKey=@ForeignKey(name="fk_classroom_type"))
     @Setter
     private ClassroomType type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "state", nullable = false, length = 20, columnDefinition = "varchar(20) default 'DISPONIBLE'")
+    @Setter
+    private ClassroomStatus state = ClassroomStatus.DISPONIBLE;
     @Override
     public String toString() {
         return codigo;

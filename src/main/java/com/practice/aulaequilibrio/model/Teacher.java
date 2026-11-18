@@ -27,4 +27,8 @@ public class Teacher {
     @Column(unique = true, length = 120)
     @Setter
     private String email;
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    @Setter
+    private boolean active = true;
 }

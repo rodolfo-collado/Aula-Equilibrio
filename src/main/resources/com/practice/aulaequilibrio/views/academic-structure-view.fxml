@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox fx:id="root" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.practice.aulaequilibrio.controller.AcademicStructureController"
+      spacing="12" styleClass="module-page">
+    <Label text="Facultades y carreras" styleClass="page-title"/>
+    <SplitPane dividerPositions="0.52" VBox.vgrow="ALWAYS" styleClass="module-split">
+        <VBox spacing="10" minWidth="240" styleClass="panel">
+            <Label text="Facultades" styleClass="card-title"/>
+            <FlowPane hgap="7" vgap="6">
+                <Button text="Agregar" onAction="#addFaculty" styleClass="primary"/>
+                <Button fx:id="editFaculty" text="Editar" onAction="#editFaculty"/>
+                <Button fx:id="deleteFaculty" text="Eliminar" onAction="#deleteFaculty" styleClass="danger"/>
+            </FlowPane>
+            <TableView fx:id="faculties" VBox.vgrow="ALWAYS">
+                <placeholder><Label text="No hay facultades registradas."/></placeholder>
+                <columns>
+                    <TableColumn fx:id="facultyCode" text="Código" prefWidth="90"/>
+                    <TableColumn fx:id="facultyName" text="Nombre" prefWidth="230"/>
+                    <TableColumn fx:id="facultyState" text="Estado" prefWidth="85"/>
+                </columns>
+            </TableView>
+        </VBox>
+        <VBox fx:id="careerPanel" spacing="10" minWidth="240" styleClass="panel">
+            <Label text="Carreras" styleClass="card-title"/>
+            <FlowPane hgap="7" vgap="6">
+                <Button text="Agregar" onAction="#addCareer" styleClass="primary"/>
+                <Button fx:id="editCareer" text="Editar" onAction="#editCareer"/>
+                <Button fx:id="deleteCareer" text="Eliminar" onAction="#deleteCareer" styleClass="danger"/>
+            </FlowPane>
+            <TableView fx:id="careers" VBox.vgrow="ALWAYS">
+                <placeholder><Label text="Selecciona una facultad para ver sus carreras."/></placeholder>
+                <columns>
+                    <TableColumn fx:id="careerCode" text="Código" prefWidth="90"/>
+                    <TableColumn fx:id="careerName" text="Nombre" prefWidth="230"/>
+                    <TableColumn fx:id="careerState" text="Estado" prefWidth="85"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </SplitPane>
+</VBox>

@@ -1,7 +1,7 @@
 package com.practice.aulaequilibrio.service;
 
 import com.practice.aulaequilibrio.model.Subject;
-import com.practice.aulaequilibrio.repository.SubjectRepository;
+import com.practice.aulaequilibrio.dao.SubjectDAO;
 import com.practice.aulaequilibrio.util.ErrorMessages;
 import com.practice.aulaequilibrio.util.ValidationException;
 import com.practice.aulaequilibrio.util.Validations;
@@ -16,14 +16,14 @@ public class SubjectService {
     private static final int MAX_CODIGO = 20;
     private static final int MAX_NOMBRE = 100;
 
-    private final SubjectRepository repository;
+    private final SubjectDAO dao;
 
     public SubjectService() {
-        this(new SubjectRepository());
+        this(new SubjectDAO());
     }
 
     public List<Subject> listAll() {
-        return repository.findAll();
+        return dao.findAll();
     }
 
     /**
@@ -35,18 +35,18 @@ public class SubjectService {
         int sesiones = Validations.positiveInteger(sesionesRequeridas, "número de sesiones requeridas");
 
         try {
-            if (repository.existsByCodigo(cleanCodigo, id)) {
+            if (dao.existsByCodigo(cleanCodigo, id)) {
                 throw new ValidationException("Ya existe una asignatura con el código \"" + cleanCodigo + "\".");
             }
 
             Subject subject = id == null
                     ? new Subject()
-                    : repository.findById(id).orElseThrow(() ->
+                    : dao.findById(id).orElseThrow(() ->
                     new ValidationException("La asignatura ya no existe. Actualice la lista."));
             subject.setCodigo(cleanCodigo);
             subject.setNombre(cleanNombre);
             subject.setSesionesRequeridas(sesiones);
-            return repository.save(subject);
+            return dao.save(subject);
         } catch (ValidationException exception) {
             throw exception;
         } catch (RuntimeException exception) {
@@ -59,7 +59,7 @@ public class SubjectService {
             throw new ValidationException("Seleccione una asignatura para eliminar.");
         }
         try {
-            if (!repository.deleteById(id)) {
+            if (!dao.deleteById(id)) {
                 throw new ValidationException("La asignatura ya no existe. Actualice la lista.");
             }
         } catch (ValidationException exception) {
