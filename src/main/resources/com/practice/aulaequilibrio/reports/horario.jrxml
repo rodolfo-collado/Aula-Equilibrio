@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport name="horario" language="java" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="38f51633-9de7-4177-a43c-fde59a3efe81">
+	<style name="Base" default="true" fontName="DejaVu Sans" fontSize="9.0" forecolor="#1E293B"/>
+	<style name="Titulo" fontName="DejaVu Sans" fontSize="16.0" bold="true" forecolor="#1F3A5F"/>
+	<style name="Subtitulo" fontName="DejaVu Sans" fontSize="10.0" forecolor="#475569"/>
+	<style name="Encabezado" mode="Opaque" backcolor="#1F3A5F" forecolor="#FFFFFF" fontName="DejaVu Sans" fontSize="9.0" bold="true" vTextAlign="Middle">
+		<box leftPadding="4" rightPadding="4"/>
+	</style>
+	<style name="Celda" fontName="DejaVu Sans" fontSize="9.0" vTextAlign="Middle">
+		<box leftPadding="4" rightPadding="4">
+			<bottomPen lineWidth="0.5" lineColor="#CBD5E1"/>
+		</box>
+	</style>
+	<parameter name="TITULO" class="java.lang.String"/>
+	<parameter name="SUBTITULO" class="java.lang.String"/>
+	<field name="dia" class="java.lang.String"/>
+	<field name="inicio" class="java.lang.String"/>
+	<field name="fin" class="java.lang.String"/>
+	<field name="asignatura" class="java.lang.String"/>
+	<field name="grupo" class="java.lang.String"/>
+	<field name="docente" class="java.lang.String"/>
+	<field name="aula" class="java.lang.String"/>
+	<group name="Dia">
+		<expression><![CDATA[$F{dia}]]></expression>
+		<groupHeader>
+			<band height="44">
+				<element kind="textField" uuid="30b51879-9759-45f9-8e07-ba1816fe7587" x="0" y="4" width="802" height="20" style="Titulo">
+					<expression><![CDATA[$F{dia}]]></expression>
+				</element>
+				<element kind="staticText" uuid="86d4ffb3-dafc-44a9-918a-0261be0e4bd7" x="0" y="24" width="60" height="20" style="Encabezado">
+					<text><![CDATA[Inicio]]></text>
+				</element>
+				<element kind="staticText" uuid="d3c706b0-d3f6-42de-9799-811ce25cfb68" x="60" y="24" width="60" height="20" style="Encabezado">
+					<text><![CDATA[Fin]]></text>
+				</element>
+				<element kind="staticText" uuid="e48cef06-36be-4d36-b074-0eb2f27dd556" x="120" y="24" width="250" height="20" style="Encabezado">
+					<text><![CDATA[Asignatura]]></text>
+				</element>
+				<element kind="staticText" uuid="97edefac-de7d-416a-9d63-90fdd68bab5e" x="370" y="24" width="110" height="20" style="Encabezado">
+					<text><![CDATA[Grupo]]></text>
+				</element>
+				<element kind="staticText" uuid="11129a6e-6ed2-4d35-86d5-071cfc680485" x="480" y="24" width="222" height="20" style="Encabezado">
+					<text><![CDATA[Docente]]></text>
+				</element>
+				<element kind="staticText" uuid="4e9295ae-e4aa-4287-831b-f48dca149a24" x="702" y="24" width="100" height="20" style="Encabezado">
+					<text><![CDATA[Aula]]></text>
+				</element>
+			</band>
+		</groupHeader>
+	</group>
+	<title height="52">
+		<element kind="textField" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d01" x="0" y="0" width="600" height="24" style="Titulo">
+			<expression><![CDATA[$P{TITULO}]]></expression>
+		</element>
+		<element kind="textField" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d02" x="0" y="26" width="600" height="18" blankWhenNull="true" style="Subtitulo">
+			<expression><![CDATA[$P{SUBTITULO}]]></expression>
+		</element>
+		<element kind="staticText" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d03" x="602" y="0" width="200" height="18" hTextAlign="Right" style="Subtitulo">
+			<text><![CDATA[Aula Equilibrio]]></text>
+		</element>
+		<element kind="textField" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d04" x="602" y="26" width="200" height="18" pattern="dd/MM/yyyy HH:mm" hTextAlign="Right" style="Subtitulo">
+			<expression><![CDATA[new java.util.Date()]]></expression>
+		</element>
+		<element kind="line" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d05" x="0" y="48" width="802" height="1" forecolor="#1F3A5F"/>
+	</title>
+	<detail>
+		<band height="18">
+			<element kind="textField" uuid="f1e5c199-2df3-4e28-b365-c5b986530c24" x="0" y="0" width="60" height="18" textAdjust="StretchHeight" style="Celda">
+				<expression><![CDATA[$F{inicio}]]></expression>
+			</element>
+			<element kind="textField" uuid="5a4817d1-6e09-4d12-842c-dd6ff275c88c" x="60" y="0" width="60" height="18" textAdjust="StretchHeight" style="Celda">
+				<expression><![CDATA[$F{fin}]]></expression>
+			</element>
+			<element kind="textField" uuid="a4583bbc-c6dd-4d07-a4e3-b75cd13f07c4" x="120" y="0" width="250" height="18" textAdjust="StretchHeight" style="Celda">
+				<expression><![CDATA[$F{asignatura}]]></expression>
+			</element>
+			<element kind="textField" uuid="2ce1ff7d-baa1-4bb5-b558-d8f8e26b9875" x="370" y="0" width="110" height="18" textAdjust="StretchHeight" style="Celda">
+				<expression><![CDATA[$F{grupo}]]></expression>
+			</element>
+			<element kind="textField" uuid="2894fb87-def1-40ee-8180-28823c1ae6fe" x="480" y="0" width="222" height="18" textAdjust="StretchHeight" style="Celda">
+				<expression><![CDATA[$F{docente}]]></expression>
+			</element>
+			<element kind="textField" uuid="71369777-ab54-436a-8cc5-44053706f66f" x="702" y="0" width="100" height="18" textAdjust="StretchHeight" style="Celda">
+				<expression><![CDATA[$F{aula}]]></expression>
+			</element>
+		</band>
+	</detail>
+	<pageFooter height="20">
+		<element kind="textField" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d06" x="602" y="4" width="160" height="16" hTextAlign="Right" style="Subtitulo">
+			<expression><![CDATA["Página " + $V{PAGE_NUMBER} + " de"]]></expression>
+		</element>
+		<element kind="textField" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d07" x="762" y="4" width="40" height="16" evaluationTime="Report" style="Subtitulo">
+			<expression><![CDATA[" " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+	</pageFooter>
+	<summary height="30">
+		<element kind="staticText" uuid="5b1a7c1e-3d0a-4c55-9a51-7f0e2b6a1d08" x="0" y="6" width="802" height="20" style="Subtitulo">
+			<printWhenExpression><![CDATA[$V{REPORT_COUNT} == 0]]></printWhenExpression>
+			<text><![CDATA[No hay datos para esta selección.]]></text>
+		</element>
+	</summary>
+</jasperReport>

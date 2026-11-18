@@ -9,6 +9,7 @@ import com.practice.aulaequilibrio.model.ScheduleReportData.TeacherLoadRow;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class ScheduleReportService {
@@ -40,6 +41,18 @@ public class ScheduleReportService {
     public static List<SessionRow> filter(List<SessionRow> rows, Scope scope, Option selected) {
         if (scope == null || selected == null) return rows;
         return rows.stream().filter(row -> Objects.equals(option(row, scope).id(), selected.id())).toList();
+    }
+
+    /** Filas para horario.jrxml: las claves coinciden con los campos del diseño. */
+    public static List<Map<String, ?>> scheduleFields(List<SessionRow> rows) {
+        return rows.stream().<Map<String, ?>>map(row -> Map.of(
+                "dia", dayName(row.day()),
+                "inicio", row.start().toString(),
+                "fin", row.end().toString(),
+                "asignatura", row.subject(),
+                "grupo", row.group(),
+                "docente", row.teacher(),
+                "aula", row.classroom())).toList();
     }
 
     public static String dayName(int day) {
