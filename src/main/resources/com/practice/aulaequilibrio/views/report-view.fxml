@@ -7,7 +7,11 @@
     <center>
         <VBox spacing="12">
             <Label text="Reportes" styleClass="page-title"/>
-            <TabPane fx:id="reports" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS"/>
+            <TabPane fx:id="reports" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+                <Tab text="Ocupación de aulas">
+                    <fx:include source="report-rooms.fxml"/>
+                </Tab>
+            </TabPane>
         </VBox>
     </center>
 </BorderPane>
