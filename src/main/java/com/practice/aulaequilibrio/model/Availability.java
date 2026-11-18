@@ -6,12 +6,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalTime;
+import org.hibernate.annotations.Check;
 
-/** Un bloque disponible de un docente; día ISO: lunes=1, domingo=7. */
+/** Un intervalo disponible de un docente; día ISO: lunes=1, domingo=7. */
 @Getter
 @NoArgsConstructor
 @Entity
 @Table(name = "availability")
+@Check(name = "ck_availability_interval", constraints = "(start_time is null and end_time is null) or (start_time is not null and end_time is not null and start_time < end_time and start_time >= TIME '07:00' and end_time <= TIME '21:00')")
 public class Availability {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,10 +27,6 @@ public class Availability {
     @Column(name = "weekday", nullable = false)
     @Setter
     private Integer day;
-
-    @Column(name = "block_number", nullable = false)
-    @Setter
-    private Integer blockNumber;
 
     @Column(name = "start_time")
     @Setter

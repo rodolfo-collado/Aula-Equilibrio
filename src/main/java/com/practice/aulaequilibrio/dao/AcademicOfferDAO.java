@@ -32,6 +32,11 @@ public class AcademicOfferDAO {
                                List<Long> requiredCareers, List<Long> optionalCareers) {
         return HibernateUtil.getSessionFactory().fromTransaction(session -> {
             Subject subject = id == null ? new Subject() : require(session, Subject.class, id);
+            if (id != null && subject.getDurationMinutes() != minutes && session.createSelectionQuery(
+                    "select count(a) from ScheduleAssignment a where a.subject.id = :id", Long.class)
+                    .setParameter("id", id).getSingleResult() > 0) {
+                throw new ValidationException("Retira primero las sesiones de horario antes de cambiar la duración de la asignatura.");
+            }
             subject.setCodigo(code);
             subject.setNombre(name);
             subject.setDurationMinutes(minutes);

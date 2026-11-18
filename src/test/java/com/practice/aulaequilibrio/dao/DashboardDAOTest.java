@@ -55,9 +55,9 @@ public class DashboardDAOTest {
             ScheduleVersion a = new ScheduleVersion("Primera"), b = new ScheduleVersion("Segunda"); s.persist(a); s.persist(b);
             for (int day = 1; day <= 3; day++) {
                 var assignment = new ScheduleAssignment(a);
-                assignment.assign(group, subject, teacher, room1, day, 1); s.persist(assignment);
+                assignment.assign(group, subject, teacher, room1, day, java.time.LocalTime.of(8,0), java.time.LocalTime.of(9,0)); s.persist(assignment);
             }
-            var other = new ScheduleAssignment(b); other.assign(group, subject, teacher, room2, 5, 1); s.persist(other);
+            var other = new ScheduleAssignment(b); other.assign(group, subject, teacher, room2, 5, java.time.LocalTime.of(8,0), java.time.LocalTime.of(9,0)); s.persist(other);
             return new int[]{a.getId(), b.getId()};
         });
         var first = service.load(versions[0]);
@@ -68,6 +68,8 @@ public class DashboardDAOTest {
         assertEquals(1, first.scheduledGroups());
         assertEquals(2, first.coveredSessions());
         assertEquals(1.0, first.coverage());
+        assertEquals(3, first.sessionsByDay().stream().mapToLong(v -> v.value()).sum());
+        assertEquals(2, first.roomStates().stream().mapToLong(v -> v.value()).sum());
         assertEquals(2, first.facultyRows().getFirst().careers());
         for (var faculty : first.facultyRows()) {
             assertEquals(1, faculty.subjects());
@@ -77,6 +79,7 @@ public class DashboardDAOTest {
         }
         var second = service.load(versions[1]);
         assertEquals(1, second.assignments());
+        assertEquals(1, second.sessionsByDay().stream().filter(v -> v.key().equals("FRIDAY")).findFirst().orElseThrow().value());
         assertEquals(0.5, second.coverage());
         assertEquals(versions[1], service.load(null).selectedVersion().id());
         factory.inTransaction(s -> {
@@ -107,6 +110,7 @@ public class DashboardDAOTest {
         assertEquals(30, data.availableSeats());
         assertEquals(3, data.requiredSessions());
         assertEquals(0, data.coveredSessions());
+        assertEquals(1, data.roomStates().stream().filter(v -> v.key().equals("MANTENIMIENTO")).findFirst().orElseThrow().value());
         assertEquals(6, data.notices().size());
         assertTrue(data.notices().stream().anyMatch(n -> n.title().contains("1 docente activo")));
         assertTrue(data.notices().stream().anyMatch(n -> n.title().contains("2 grupos sin horario")));

@@ -11,6 +11,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.BarChart;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +38,7 @@ class DashboardScreenTest {
                 ClassroomType type = new ClassroomType(); type.setName("General"); s.persist(type);
                 Classroom room = new Classroom(); room.setCodigo("A1"); room.setCapacidad(30); room.setType(type); s.persist(room);
                 ScheduleVersion version = new ScheduleVersion("Con sesiones"); s.persist(version);
-                ScheduleAssignment assignment = new ScheduleAssignment(version); assignment.assign(group, subject, teacher, room, 1, 1); s.persist(assignment);
+                ScheduleAssignment assignment = new ScheduleAssignment(version); assignment.assign(group, subject, teacher, room, 1, java.time.LocalTime.of(8,0), java.time.LocalTime.of(9,0)); s.persist(assignment);
                 s.persist(new ScheduleVersion("Sin sesiones"));
                 return version.getId();
             });
@@ -75,6 +77,9 @@ class DashboardScreenTest {
                 });
                 idle(root);
                 assertEquals("50%", fx(() -> label(root, "coverageCount").getText()));
+                assertEquals(2, fx(() -> ((PieChart)root.lookup("#coveragePie")).getData().size()));
+                assertEquals(1.0, fx(() -> ((PieChart)root.lookup("#roomPie")).getData().stream().mapToDouble(PieChart.Data::getPieValue).sum()));
+                assertEquals(7, fx(() -> ((BarChart<?, ?>)root.lookup("#weekChart")).getData().getFirst().getData().size()));
                 assertTrue(fx(() -> label(root, "summary").getText().contains("1 aula utilizada")));
                 assertEquals(1, fx(() -> ((TableView<?>)root.lookup("#faculties")).getItems().size()));
                 factory.inTransaction(s -> {

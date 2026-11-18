@@ -47,9 +47,16 @@ public final class HibernateUtil {
                         .build();
 
         try {
-            return new MetadataSources(registry)
+            SessionFactory factory = new MetadataSources(registry)
                     .buildMetadata()
                     .buildSessionFactory();
+            try {
+                executeScript(factory, "migrate_time_intervals.sql");
+                return factory;
+            } catch (RuntimeException exception) {
+                factory.close();
+                throw exception;
+            }
         } catch (RuntimeException exception) {
             StandardServiceRegistryBuilder.destroy(registry);
             throw exception;
@@ -84,12 +91,16 @@ public final class HibernateUtil {
     }
 
     public static void loadDemoData() {
-        try (var script = HibernateUtil.class.getResourceAsStream("/sql/demo_seed.sql")) {
+        executeScript(getSessionFactory(), "demo_seed.sql");
+    }
+
+    private static void executeScript(SessionFactory factory, String name) {
+        try (var script = HibernateUtil.class.getResourceAsStream("/sql/" + name)) {
             if (script == null) {
-                throw new IllegalStateException("No se encontró la semilla de demostración.");
+                throw new IllegalStateException("No se encontró el script " + name);
             }
             String sql = new String(script.readAllBytes(), StandardCharsets.UTF_8);
-            getSessionFactory().inTransaction(session -> session.createNativeMutationQuery(sql).executeUpdate());
+            factory.inTransaction(session -> session.createNativeMutationQuery(sql).executeUpdate());
         } catch (IOException exception) {
             throw new UncheckedIOException("No se pudo leer la semilla de demostración.", exception);
         }

@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.exception.ConstraintViolationException;
+import jakarta.persistence.LockModeType;
+import com.practice.aulaequilibrio.model.ScheduleAssignment;
+import com.practice.aulaequilibrio.util.TimeIntervals;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -65,10 +68,10 @@ public final class CatalogDAO {
         try {
             transaction(s -> {
                 Teacher teacher = requireTeacher(s, id);
-                long blocks = s.createQuery("select count(a) from Availability a where a.teacher.id = :id", Long.class)
+                long intervals = s.createQuery("select count(a) from Availability a where a.teacher.id = :id", Long.class)
                         .setParameter("id", id).getSingleResult();
-                if (blocks > 0) throw new IllegalArgumentException(
-                        "No se puede eliminar el docente porque tiene bloques asociados. Elimina o reasigna sus bloques primero.");
+                if (intervals > 0) throw new IllegalArgumentException(
+                        "No se puede eliminar el docente porque tiene intervalos asociados. Elimina o reasigna sus intervalos primero.");
                 s.remove(teacher);
                 return null;
             });
@@ -81,59 +84,67 @@ public final class CatalogDAO {
     public List<Availability> listAvailability(Integer teacherId) {
         return transaction(s -> {
             if (teacherId == null)
-                return s.createQuery("select a from Availability a join fetch a.teacher t order by t.name, a.day, a.startTime nulls last, a.blockNumber, a.id",
+                return s.createQuery("select a from Availability a join fetch a.teacher t order by t.name, a.day, a.startTime nulls last, a.id",
                         Availability.class).getResultList();
             return s.createQuery("select a from Availability a join fetch a.teacher t where t.id = :teacherId "
-                            + "order by a.day, a.startTime nulls last, a.blockNumber, a.id", Availability.class)
+                            + "order by a.day, a.startTime nulls last, a.id", Availability.class)
                     .setParameter("teacherId", teacherId).getResultList();
         });
     }
 
-    public Availability saveAvailability(Integer id, Integer teacherId, Integer day, Integer blockNumber) {
-        return saveAvailability(id, teacherId, day, blockNumber, null, null);
-    }
-
     public Availability saveInterval(Integer id, Integer teacherId, Integer day, LocalTime start, LocalTime end) {
-        if (start == null || end == null || !start.isBefore(end)) {
-            throw new IllegalArgumentException("La hora de inicio debe ser anterior a la de fin.");
-        }
-        // Mantiene la columna obligatoria de los registros anteriores.
-        return saveAvailability(id, teacherId, day, start.getHour() * 60 + start.getMinute() + 1, start, end);
-    }
-
-    private Availability saveAvailability(Integer id, Integer teacherId, Integer day, Integer blockNumber,
-                                          LocalTime start, LocalTime end) {
+        TimeIntervals.validate(start, end);
         if (teacherId == null) throw new IllegalArgumentException("Selecciona un docente existente.");
         if (day == null || day < 1 || day > 7)
             throw new IllegalArgumentException("Selecciona un día de lunes a domingo.");
-        if (blockNumber == null || blockNumber < 1)
-            throw new IllegalArgumentException("El número de bloque debe ser un entero mayor que cero.");
         return transaction(s -> {
             Teacher teacher = requireTeacher(s, teacherId);
-            Availability block = id == null ? new Availability() : s.find(Availability.class, id);
-            if (block == null) throw new IllegalArgumentException("El bloque ya no existe. Actualiza la lista.");
-            block.setTeacher(teacher);
-            block.setDay(day);
-            block.setBlockNumber(blockNumber);
-            block.setStartTime(start);
-            block.setEndTime(end);
-            if (id == null) s.persist(block);
-            return block;
+            Availability interval = id == null ? new Availability() : s.find(Availability.class, id);
+            if (interval == null) throw new IllegalArgumentException("El intervalo ya no existe. Actualiza la lista.");
+            Integer previousOwner = interval.getTeacher() == null ? null : interval.getTeacher().getId();
+            if (previousOwner != null && !previousOwner.equals(teacherId)) requireTeacher(s, previousOwner);
+            long overlaps = s.createSelectionQuery("""
+                    select count(a) from Availability a where a.teacher.id = :teacher and a.day = :day
+                    and a.startTime < :end and a.endTime > :start and (:id is null or a.id <> :id)
+                    """, Long.class).setParameter("teacher", teacherId).setParameter("day", day)
+                    .setParameter("start", start).setParameter("end", end).setParameter("id", id).getSingleResult();
+            if (overlaps > 0) throw new IllegalArgumentException("El intervalo se solapa con otra disponibilidad del docente.");
+            interval.setTeacher(teacher); interval.setDay(day); interval.setStartTime(start); interval.setEndTime(end);
+            if (id == null) s.persist(interval);
+            s.flush();
+            ensureScheduleCovered(s, teacherId);
+            if (previousOwner != null && !previousOwner.equals(teacherId)) ensureScheduleCovered(s, previousOwner);
+            return interval;
         });
     }
 
     public void deleteAvailability(Integer id) {
         transaction(s -> {
-            Availability block = id == null ? null : s.find(Availability.class, id);
-            if (block == null) throw new IllegalArgumentException("Selecciona un bloque existente.");
-            s.remove(block);
+            Availability interval = id == null ? null : s.find(Availability.class, id);
+            if (interval == null) throw new IllegalArgumentException("Selecciona un intervalo existente.");
+            int teacherId = interval.getTeacher().getId(); requireTeacher(s, teacherId);
+            s.remove(interval); s.flush(); ensureScheduleCovered(s, teacherId);
             return null;
         });
     }
 
     private Teacher requireTeacher(Session session, Integer id) {
-        Teacher teacher = id == null ? null : session.find(Teacher.class, id);
+        Teacher teacher = id == null ? null : session.find(Teacher.class, id, LockModeType.PESSIMISTIC_WRITE);
         if (teacher == null) throw new IllegalArgumentException("El docente ya no existe. Actualiza la lista.");
         return teacher;
+    }
+
+    private void ensureScheduleCovered(Session session, int teacherId) {
+        var assignments = session.createSelectionQuery("from ScheduleAssignment where teacher.id = :teacher", ScheduleAssignment.class)
+                .setParameter("teacher", teacherId).getResultList();
+        for (var assignment : assignments) {
+            if (!assignment.hasTime()) continue;
+            var available = session.createSelectionQuery("""
+                    select a.startTime, a.endTime from Availability a
+                    where a.teacher.id = :teacher and a.day = :day
+                    """, TimeIntervals.Range.class).setParameter("teacher", teacherId).setParameter("day", assignment.getDay()).getResultList();
+            if (!TimeIntervals.covered(available, assignment.getStartTime(), assignment.getEndTime()))
+                throw new IllegalArgumentException("El cambio deja una sesión fuera de la disponibilidad del docente. Ajusta primero sus horarios.");
+        }
     }
 }

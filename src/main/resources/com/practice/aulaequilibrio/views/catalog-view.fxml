@@ -37,25 +37,25 @@
             <HBox spacing="7" alignment="CENTER_LEFT">
                 <ComboBox fx:id="dayFilter" accessibleText="Filtrar disponibilidad por día" prefWidth="145"/>
             </HBox>
-            <TableView fx:id="blocks" VBox.vgrow="ALWAYS" minHeight="120">
+            <TableView fx:id="intervals" VBox.vgrow="ALWAYS" minHeight="120">
                 <placeholder>
-                    <Label fx:id="emptyBlocks" text="Selecciona un docente para ver sus bloques." wrapText="true"/>
+                    <Label fx:id="emptyIntervals" text="Selecciona un docente para ver sus intervalos." wrapText="true"/>
                 </placeholder>
                 <columns>
-                    <TableColumn fx:id="blockDay" text="Día" prefWidth="150"/>
-                    <TableColumn fx:id="blockValue" text="Horario" prefWidth="140"/>
+                    <TableColumn fx:id="intervalDay" text="Día" prefWidth="150"/>
+                    <TableColumn fx:id="intervalValue" text="Horario" prefWidth="140"/>
                 </columns>
             </TableView>
-            <Label fx:id="blockEditorTitle" text="Nuevo intervalo" styleClass="card-title"/>
+            <Label fx:id="intervalEditorTitle" text="Nuevo intervalo" styleClass="card-title"/>
             <ComboBox fx:id="day" promptText="Día de la semana" maxWidth="Infinity"/>
             <HBox spacing="7">
                 <TextField fx:id="startTime" promptText="Inicio (HH:mm)" HBox.hgrow="ALWAYS"/>
                 <TextField fx:id="endTime" promptText="Fin (HH:mm)" HBox.hgrow="ALWAYS"/>
             </HBox>
             <FlowPane hgap="7" vgap="6">
-                <Button text="Nuevo intervalo" onAction="#newBlock"/>
-                <Button text="Guardar intervalo" onAction="#saveBlock" styleClass="primary"/>
-                <Button fx:id="deleteBlockButton" text="Eliminar intervalo" onAction="#deleteBlock" styleClass="danger"/>
+                <Button text="Nuevo intervalo" onAction="#newInterval"/>
+                <Button text="Guardar intervalo" onAction="#saveInterval" styleClass="primary"/>
+                <Button fx:id="deleteIntervalButton" text="Eliminar intervalo" onAction="#deleteInterval" styleClass="danger"/>
             </FlowPane>
         </VBox>
     </SplitPane>

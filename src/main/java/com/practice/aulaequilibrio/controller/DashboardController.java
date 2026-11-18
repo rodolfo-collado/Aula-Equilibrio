@@ -9,6 +9,10 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Orientation;
 import javafx.scene.control.*;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.XYChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.layout.*;
 
 import java.time.LocalTime;
@@ -30,6 +34,10 @@ public class DashboardController {
     @FXML private TableColumn<FacultyRow, String> facultyName;
     @FXML private TableColumn<FacultyRow, Long> careers, subjects, groups, classrooms, assignments;
     @FXML private VBox ranking, notices;
+    @FXML private TilePane piePanels;
+    @FXML private PieChart roomPie, coveragePie;
+    @FXML private BarChart<String, Number> weekChart;
+    @FXML private Label roomChartEmpty, coverageChartEmpty, weekChartEmpty;
 
     private final DashboardService service;
     private Consumer<Destination> navigator = destination -> {};
@@ -59,6 +67,7 @@ public class DashboardController {
             double width = Math.max(1, bounds.getWidth() - 44);
             int columns = width >= 1180 ? 6 : width >= 800 ? 3 : width >= 500 ? 2 : 1;
             metrics.setPrefTileWidth(Math.max(1, (width - 12 * (columns - 1)) / columns));
+            piePanels.setPrefTileWidth(Math.max(1, (width - (width >= 650 ? 12 : 0)) / (width >= 650 ? 2 : 1)));
             boolean narrow = width < 800;
             detailPanels.setOrientation(narrow ? Orientation.VERTICAL : Orientation.HORIZONTAL);
             detailPanels.setPrefHeight(narrow ? 740 : 400);
@@ -143,6 +152,7 @@ public class DashboardController {
             ranking.getChildren().add(row);
         }
         notices.getChildren().clear();
+        renderCharts(data);
         if (data.notices().isEmpty()) notices.getChildren().add(wrapped("Sin pendientes en estos indicadores.", "muted"));
         for (Notice notice : data.notices()) {
             Button action = new Button("Revisar →");
@@ -151,6 +161,53 @@ public class DashboardController {
             VBox row = new VBox(4, wrapped(notice.title(), "card-title"), wrapped(notice.detail(), "muted"), action);
             row.getStyleClass().add("dashboard-notice");
             notices.getChildren().add(row);
+        }
+    }
+
+    private void renderCharts(Snapshot data) {
+        pie(roomPie, roomChartEmpty, data.roomStates(), Destination.ROOMS);
+        pie(coveragePie, coverageChartEmpty, data.selectedVersion() == null ? java.util.List.of() : java.util.List.of(
+                new ChartValue("covered", "Cubiertas", data.coveredSessions()),
+                new ChartValue("pending", "Pendientes", data.requiredSessions() - data.coveredSessions())), Destination.SCHEDULES);
+        weekChart.getData().clear();
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        data.sessionsByDay().forEach(value -> {
+            XYChart.Data<String, Number> point = new XYChart.Data<>(value.label(), value.value());
+            point.nodeProperty().addListener((obs, before, node) -> {
+                if (node != null) {
+                    Tooltip.install(node, new Tooltip(value.label() + ": " + value.value() + " sesiones. Pulsa para abrir Horarios."));
+                    node.setOnMouseClicked(event -> navigator.accept(Destination.SCHEDULES));
+                }
+            });
+            series.getData().add(point);
+        });
+        weekChart.getData().add(series);
+        long maximum = data.sessionsByDay().stream().mapToLong(ChartValue::value).max().orElse(0);
+        double step = Math.max(1, Math.ceil(maximum / 5.0));
+        NumberAxis axis = (NumberAxis) weekChart.getYAxis();
+        axis.setAutoRanging(false);
+        axis.setLowerBound(0);
+        axis.setUpperBound(Math.max(step, Math.ceil((maximum + 1) / step) * step));
+        axis.setTickUnit(step);
+        weekChartEmpty.setVisible(data.assignments() == 0);
+    }
+
+    private void pie(PieChart chart, Label empty, java.util.List<ChartValue> values, Destination target) {
+        chart.getData().clear();
+        long total = values.stream().mapToLong(ChartValue::value).sum();
+        empty.setVisible(total == 0);
+        if (total == 0) return;
+        for (ChartValue value : values) {
+            PieChart.Data slice = new PieChart.Data(value.label() + " · " + value.value(), value.value());
+            slice.nodeProperty().addListener((obs, before, node) -> {
+                if (node != null) {
+                    node.getStyleClass().add("slice-" + value.key());
+                    Tooltip.install(node, new Tooltip(value.label() + ": " + value.value() + " ("
+                            + Math.round(100.0 * value.value() / total) + "%). Pulsa para revisar."));
+                    node.setOnMouseClicked(event -> navigator.accept(target));
+                }
+            });
+            chart.getData().add(slice);
         }
     }
 

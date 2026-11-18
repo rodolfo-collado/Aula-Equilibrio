@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.time.DayOfWeek;
+import java.time.format.TextStyle;
 
 @RequiredArgsConstructor
 public class DashboardService {
@@ -16,6 +18,8 @@ public class DashboardService {
 
     public Snapshot load(Integer versionId) {
         Facts facts = dao.load(versionId);
+        var timed = facts.assignments().stream().filter(a -> a.start() != null && a.end() != null && a.start().isBefore(a.end())).toList();
+        long undefinedTimes = facts.assignments().size() - timed.size();
         Map<Long, Set<Integer>> subjectsByFaculty = new HashMap<>();
         facts.links().forEach(link -> subjectsByFaculty.computeIfAbsent(link.facultyId(), id -> new HashSet<>())
                 .add(link.subjectId()));
@@ -23,23 +27,25 @@ public class DashboardService {
         for (FacultyInfo faculty : facts.faculties()) {
             Set<Integer> subjects = subjectsByFaculty.getOrDefault(faculty.id(), Set.of());
             long groups = facts.groups().stream().filter(g -> g.subjectId() != null && subjects.contains(g.subjectId())).count();
-            var assigned = facts.assignments().stream().filter(a -> subjects.contains(a.subjectId())).toList();
+            var assigned = timed.stream().filter(a -> subjects.contains(a.subjectId())).toList();
             long rooms = assigned.stream().map(AssignmentInfo::classroomId).distinct().count();
             facultyRows.add(new FacultyRow(faculty.id(), faculty.name() + (faculty.active() ? "" : " (inactiva)"),
                     faculty.careers(), subjects.size(), groups, rooms, assigned.size()));
         }
-        Map<Integer, Long> sessionsByGroup = facts.assignments().stream().collect(Collectors.groupingBy(
+        Map<Integer, Long> sessionsByGroup = timed.stream().collect(Collectors.groupingBy(
                 AssignmentInfo::groupId, Collectors.counting()));
         long required = 0, covered = 0;
         for (GroupInfo group : facts.groups()) {
             if (group.subjectId() == null) continue;
             int expected = Math.max(0, group.weeklySessions());
             required += expected;
-            long matching = facts.assignments().stream().filter(a -> a.groupId().equals(group.id())
+            long matching = timed.stream().filter(a -> a.groupId().equals(group.id())
                     && a.subjectId().equals(group.subjectId())).count();
             covered += Math.min(expected, matching);
         }
         List<Notice> notices = new ArrayList<>();
+        if (undefinedTimes > 0) notices.add(new Notice(undefinedTimes + " sesiones sin horas definidas",
+                "Registros anteriores pendientes de revisión. No cuentan como sesiones cubiertas; edítalos desde la lista de Horarios.", Destination.SCHEDULES));
         long noTeacher = facts.groups().stream().filter(g -> g.teacherId() == null).count();
         if (noTeacher > 0) notices.add(new Notice(quantity(noTeacher, "grupo sin profesor", "grupos sin profesor"),
                 "Completa la asignación de docentes en Oferta académica.", Destination.OFFER));
@@ -64,9 +70,14 @@ public class DashboardService {
         return new Snapshot(facts.versions(), facts.selectedVersion(), facts.faculties().size(),
                 facts.faculties().stream().mapToLong(FacultyInfo::careers).sum(), facts.subjects(), facts.groups().size(),
                 facts.teachers(), facts.activeTeachers(), facts.rooms().size(), available.size(),
-                available.stream().mapToLong(RoomInfo::capacity).sum(), facts.assignments().size(),
-                sessionsByGroup.size(), facts.assignments().stream().map(AssignmentInfo::classroomId).distinct().count(),
-                required, covered, List.copyOf(facultyRows), List.copyOf(notices));
+                available.stream().mapToLong(RoomInfo::capacity).sum(), timed.size(),
+                sessionsByGroup.size(), timed.stream().map(AssignmentInfo::classroomId).distinct().count(),
+                required, covered, List.copyOf(facultyRows), List.copyOf(notices),
+                Arrays.stream(ClassroomStatus.values()).map(state -> new ChartValue(state.name(), state.toString(),
+                        facts.rooms().stream().filter(room -> room.state() == state).count())).toList(),
+                Arrays.stream(DayOfWeek.values()).map(day -> new ChartValue(day.name(),
+                        day.getDisplayName(TextStyle.SHORT, Locale.forLanguageTag("es-NI")),
+                        timed.stream().filter(a -> a.day() == day.getValue()).count())).toList());
     }
 
     private static String quantity(long count, String singular, String plural) {

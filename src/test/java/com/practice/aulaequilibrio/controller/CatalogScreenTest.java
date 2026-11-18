@@ -50,21 +50,21 @@ class CatalogScreenTest {
                 idle();
                 teacher("Ana Pérez", "ana@example.test");
                 teacher("Luis López", "");
-                block(0, 0, "08:00", "10:00");
-                block(1, 1, "13:00", "15:00");
+                interval(0, 0, "08:00", "10:00");
+                interval(1, 1, "13:00", "15:00");
                 selectTeacher(0);
-                assertEquals(1, fx(() -> table("blocks").getItems().size()));
-                Availability shown = fx(() -> (Availability) table("blocks").getItems().getFirst());
+                assertEquals(1, fx(() -> table("intervals").getItems().size()));
+                Availability shown = fx(() -> (Availability) table("intervals").getItems().getFirst());
                 assertEquals("Ana Pérez", shown.getTeacher().getName());
                 fx(() -> {
                     field("teacherSearch").setText("PEREZ");
                     assertEquals(1, table("teachers").getItems().size());
-                    assertSame(shown, table("blocks").getItems().getFirst());
+                    assertSame(shown, table("intervals").getItems().getFirst());
                     field("teacherSearch").setText("ANA@EXAMPLE.TEST");
                     assertEquals(1, table("teachers").getItems().size());
                     combo("emailFilter").getSelectionModel().select(2);
                     assertTrue(table("teachers").getItems().isEmpty());
-                    assertTrue(table("blocks").getItems().isEmpty());
+                    assertTrue(table("intervals").getItems().isEmpty());
                     field("teacherSearch").clear();
                     assertEquals(1, table("teachers").getItems().size());
                     combo("emailFilter").getSelectionModel().selectFirst();
@@ -74,40 +74,40 @@ class CatalogScreenTest {
                 selectTeacher(0);
                 fx(() -> {
                     combo("dayFilter").getSelectionModel().select(2);
-                    assertTrue(table("blocks").getItems().isEmpty());
+                    assertTrue(table("intervals").getItems().isEmpty());
                     combo("dayFilter").getSelectionModel().select(1);
-                    assertEquals(1, table("blocks").getItems().size());
+                    assertEquals(1, table("intervals").getItems().size());
                     combo("dayFilter").getSelectionModel().selectFirst();
                     return null;
                 });
                 fx(() -> {
-                    table("blocks").getSelectionModel().select(0);
+                    table("intervals").getSelectionModel().select(0);
                     field("startTime").setText("09:00");
                     combo("day").getSelectionModel().select(4);
                     click("Guardar intervalo"); return null;
                 });
                 idle();
-                assertEquals("09:00", fx(() -> ((Availability) table("blocks").getItems().getFirst()).getStartTime().toString()));
+                assertEquals("09:00", fx(() -> ((Availability) table("intervals").getItems().getFirst()).getStartTime().toString()));
                 fx(() -> {
                     table("teachers").getSelectionModel().select(0);
                     approveNextDialog();
                     click("Eliminar docente"); return null;
                 });
                 String warning = waitForWarning();
-                assertTrue(warning.contains("bloques asociados"));
+                assertTrue(warning.contains("intervalos asociados"));
                 assertTrue(fx(stage::isMaximized));
                 assertFalse(fx(() -> root.dialogShowingProperty().get()));
                 assertEquals(2, dao.listTeachers().size());
                 fx(() -> {
-                    table("blocks").getSelectionModel().select(0);
+                    table("intervals").getSelectionModel().select(0);
                     approveNextDialog();
                     click("Eliminar intervalo"); return null;
                 });
                 idle();
-                assertEquals(0, fx(() -> table("blocks").getItems().size()));
+                assertEquals(0, fx(() -> table("intervals").getItems().size()));
                 selectTeacher(1);
-                assertEquals(1, fx(() -> table("blocks").getItems().size()));
-                assertEquals("Luis López", fx(() -> ((Availability) table("blocks").getItems().getFirst()).getTeacher().getName()));
+                assertEquals(1, fx(() -> table("intervals").getItems().size()));
+                assertEquals("Luis López", fx(() -> ((Availability) table("intervals").getItems().getFirst()).getTeacher().getName()));
             } finally { fx(() -> { stage.close(); return null; }); }
         }
     }
@@ -135,7 +135,7 @@ class CatalogScreenTest {
         idle();
     }
 
-    private void block(int teacher, int day, String start, String end) throws Exception {
+    private void interval(int teacher, int day, String start, String end) throws Exception {
         selectTeacher(teacher);
         fx(() -> {
             combo("day").getSelectionModel().select(day);

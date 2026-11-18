@@ -38,7 +38,7 @@ public class DashboardDAO {
             VersionOption selected = versions.stream().filter(v -> v.id().equals(versionId)).findFirst()
                     .orElse(versions.isEmpty() ? null : versions.getFirst());
             List<AssignmentInfo> assignments = selected == null ? List.of() : session.createSelectionQuery("""
-                    select a.group.id, a.subject.id, a.classroom.id from ScheduleAssignment a
+                    select a.group.id, a.subject.id, a.classroom.id, a.day, a.startTime, a.endTime from ScheduleAssignment a
                     where a.version.id = :version
                     """, AssignmentInfo.class).setParameter("version", selected.id()).getResultList();
             return new Facts(faculties, links, groups, rooms, versions, selected, assignments,
@@ -47,7 +47,7 @@ public class DashboardDAO {
                     count(session, "select count(t) from Teacher t where t.active = true"),
                     count(session, """
                             select count(t) from Teacher t where t.active = true
-                            and not exists (select a.id from Availability a where a.teacher = t)
+                            and not exists (select a.id from Availability a where a.teacher = t and a.startTime is not null and a.endTime > a.startTime)
                             """),
                     count(session, """
                             select count(s) from Subject s

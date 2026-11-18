@@ -42,20 +42,20 @@ public class CatalogController {
     @FXML private VBox availabilityPanel;
     @FXML private TableView<Teacher> teachers;
     @FXML private TableColumn<Teacher, String> teacherName, teacherEmail, teacherState;
-    @FXML private TableView<Availability> blocks;
-    @FXML private TableColumn<Availability, String> blockDay;
-    @FXML private TableColumn<Availability, String> blockValue;
+    @FXML private TableView<Availability> intervals;
+    @FXML private TableColumn<Availability, String> intervalDay;
+    @FXML private TableColumn<Availability, String> intervalValue;
     @FXML private ComboBox<String> day, emailFilter, dayFilter;
     @FXML private TextField startTime, endTime, teacherSearch;
-    @FXML private Label availabilityTitle, blockEditorTitle, emptyTeachers, emptyBlocks, status;
-    @FXML private Button editTeacherButton, deleteTeacherButton, deleteBlockButton;
+    @FXML private Label availabilityTitle, intervalEditorTitle, emptyTeachers, emptyIntervals, status;
+    @FXML private Button editTeacherButton, deleteTeacherButton, deleteIntervalButton;
 
     private final CatalogService service;
     private final SimpleBooleanProperty busy = new SimpleBooleanProperty();
     private final ObservableList<Teacher> teacherRows = FXCollections.observableArrayList();
-    private final ObservableList<Availability> blockRows = FXCollections.observableArrayList();
+    private final ObservableList<Availability> intervalRows = FXCollections.observableArrayList();
     private final FilteredList<Teacher> filteredTeachers = new FilteredList<>(teacherRows);
-    private final FilteredList<Availability> filteredBlocks = new FilteredList<>(blockRows);
+    private final FilteredList<Availability> filteredIntervals = new FilteredList<>(intervalRows);
     private MdiDesktop desktop;
     private String moduleTitle;
     private boolean refreshingTeachers;
@@ -73,17 +73,17 @@ public class CatalogController {
     private void initialize() {
         teacherName.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getName()));
         teacherEmail.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getEmail()));
-        blockDay.setCellValueFactory(cell -> new ReadOnlyStringWrapper(DAYS.get(cell.getValue().getDay() - 1)));
+        intervalDay.setCellValueFactory(cell -> new ReadOnlyStringWrapper(DAYS.get(cell.getValue().getDay() - 1)));
         teacherState.setCellValueFactory(cell -> new ReadOnlyStringWrapper(
                 cell.getValue().isActive() ? "Activo" : "Inactivo"));
-        blockValue.setCellValueFactory(cell -> {
+        intervalValue.setCellValueFactory(cell -> {
             Availability value = cell.getValue();
-            String text = value.getStartTime() == null ? "Bloque " + value.getBlockNumber()
+            String text = value.getStartTime() == null ? "Pendiente de definir"
                     : value.getStartTime() + " – " + value.getEndTime();
             return new ReadOnlyStringWrapper(text);
         });
         teachers.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        blocks.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        intervals.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         day.getItems().setAll(DAYS);
         configureFilters();
 
@@ -92,27 +92,27 @@ public class CatalogController {
         editTeacherButton.disableProperty().bind(noTeacher);
         deleteTeacherButton.disableProperty().bind(noTeacher);
         availabilityPanel.disableProperty().bind(noTeacher);
-        deleteBlockButton.disableProperty().bind(blocks.getSelectionModel().selectedItemProperty().isNull());
+        deleteIntervalButton.disableProperty().bind(intervals.getSelectionModel().selectedItemProperty().isNull());
         teachers.getSelectionModel().selectedItemProperty().addListener((observable, previous, teacher) -> {
             if (!refreshingTeachers) {
-                showBlocks(teacher, List.of());
+                showIntervals(teacher, List.of());
                 if (teacher != null) {
                     run("Disponibilidad actualizada.", () -> service.listAvailability(teacher.getId()),
-                            result -> showBlocks(teacher, result), this::message);
+                            result -> showIntervals(teacher, result), this::message);
                 }
             }
         });
-        blocks.getSelectionModel().selectedItemProperty().addListener((observable, previous, block) -> {
-            if (block == null) {
-                blockEditorTitle.setText("Nuevo intervalo");
+        intervals.getSelectionModel().selectedItemProperty().addListener((observable, previous, interval) -> {
+            if (interval == null) {
+                intervalEditorTitle.setText("Nuevo intervalo");
                 day.getSelectionModel().clearSelection();
                 startTime.clear();
                 endTime.clear();
             } else {
-                blockEditorTitle.setText("Editar intervalo");
-                day.getSelectionModel().select(block.getDay() - 1);
-                startTime.setText(Objects.toString(block.getStartTime(), ""));
-                endTime.setText(Objects.toString(block.getEndTime(), ""));
+                intervalEditorTitle.setText("Editar intervalo");
+                day.getSelectionModel().select(interval.getDay() - 1);
+                startTime.setText(Objects.toString(interval.getStartTime(), ""));
+                endTime.setText(Objects.toString(interval.getEndTime(), ""));
             }
         });
         reload();
@@ -122,9 +122,9 @@ public class CatalogController {
         var sortedTeachers = new SortedList<>(filteredTeachers);
         sortedTeachers.comparatorProperty().bind(teachers.comparatorProperty());
         teachers.setItems(sortedTeachers);
-        var sortedBlocks = new SortedList<>(filteredBlocks);
-        sortedBlocks.comparatorProperty().bind(blocks.comparatorProperty());
-        blocks.setItems(sortedBlocks);
+        var sortedIntervals = new SortedList<>(filteredIntervals);
+        sortedIntervals.comparatorProperty().bind(intervals.comparatorProperty());
+        intervals.setItems(sortedIntervals);
 
         emailFilter.getItems().setAll("Todos", WITH_EMAIL, WITHOUT_EMAIL);
         emailFilter.getSelectionModel().selectFirst();
@@ -134,7 +134,7 @@ public class CatalogController {
 
         teacherSearch.textProperty().addListener((observable, before, after) -> filterTeachers());
         emailFilter.valueProperty().addListener((observable, before, after) -> filterTeachers());
-        dayFilter.valueProperty().addListener((observable, before, after) -> filterBlocks());
+        dayFilter.valueProperty().addListener((observable, before, after) -> filterIntervals());
     }
 
     private void filterTeachers() {
@@ -153,32 +153,32 @@ public class CatalogController {
             teachers.getSelectionModel().select(selected);
         } else {
             teachers.getSelectionModel().clearSelection();
-            showBlocks(null, List.of());
+            showIntervals(null, List.of());
         }
         refreshingTeachers = false;
         emptyTeachers.setText(query.isEmpty() && "Todos".equals(emailChoice)
                 ? "No hay docentes registrados." : "Ningún docente coincide con los filtros.");
     }
 
-    private void filterBlocks() {
+    private void filterIntervals() {
         int selectedDay = Math.max(0, dayFilter.getSelectionModel().getSelectedIndex());
-        Availability selected = blocks.getSelectionModel().getSelectedItem();
-        filteredBlocks.setPredicate(block -> selectedDay == 0 || block.getDay() == selectedDay);
-        if (selected != null && filteredBlocks.contains(selected)) {
-            blocks.getSelectionModel().select(selected);
+        Availability selected = intervals.getSelectionModel().getSelectedItem();
+        filteredIntervals.setPredicate(interval -> selectedDay == 0 || interval.getDay() == selectedDay);
+        if (selected != null && filteredIntervals.contains(selected)) {
+            intervals.getSelectionModel().select(selected);
         } else {
-            blocks.getSelectionModel().clearSelection();
+            intervals.getSelectionModel().clearSelection();
         }
-        updateBlockPlaceholder();
+        updateIntervalPlaceholder();
     }
 
-    private void updateBlockPlaceholder() {
+    private void updateIntervalPlaceholder() {
         if (teachers.getSelectionModel().isEmpty()) {
-            emptyBlocks.setText("Selecciona un docente para ver sus bloques.");
-        } else if (blockRows.isEmpty()) {
-            emptyBlocks.setText("Sin bloques registrados.");
+            emptyIntervals.setText("Selecciona un docente para ver sus intervalos.");
+        } else if (intervalRows.isEmpty()) {
+            emptyIntervals.setText("Sin intervalos registrados.");
         } else {
-            emptyBlocks.setText("Ningún bloque coincide con los filtros.");
+            emptyIntervals.setText("Ningún intervalo coincide con los filtros.");
         }
     }
 
@@ -249,7 +249,7 @@ public class CatalogController {
         teacherRows.sort(Comparator.comparing(Teacher::getName).thenComparing(Teacher::getId));
         teachers.getSelectionModel().clearSelection();
         refreshingTeachers = false;
-        showBlocks(null, List.of());
+        showIntervals(null, List.of());
         if (filteredTeachers.contains(saved)) {
             teachers.getSelectionModel().select(saved);
         }
@@ -267,54 +267,54 @@ public class CatalogController {
                 teachers.getSelectionModel().clearSelection();
                 teacherRows.remove(removed);
                 refreshingTeachers = false;
-                showBlocks(null, List.of());
+                showIntervals(null, List.of());
             }, this::message));
         }
     }
 
-    @FXML private void newBlock() {
-        blocks.getSelectionModel().clearSelection();
+    @FXML private void newInterval() {
+        intervals.getSelectionModel().clearSelection();
         day.getSelectionModel().clearSelection();
         startTime.clear();
         endTime.clear();
         day.requestFocus();
     }
 
-    @FXML private void saveBlock() {
+    @FXML private void saveInterval() {
         Teacher owner = teachers.getSelectionModel().getSelectedItem();
         if (owner == null) {
             return;
         }
-        Availability selected = blocks.getSelectionModel().getSelectedItem();
+        Availability selected = intervals.getSelectionModel().getSelectedItem();
         Integer id = selected == null ? null : selected.getId();
         Integer dayValue = day.getValue() == null ? null : DAYS.indexOf(day.getValue()) + 1;
         String start = startTime.getText();
         String end = endTime.getText();
         run("Disponibilidad guardada.", () -> service.saveInterval(id, owner.getId(), dayValue, start, end), saved -> {
-            blocks.getSelectionModel().clearSelection();
-            blockRows.removeIf(block -> Objects.equals(block.getId(), saved.getId()));
-            blockRows.add(saved);
-            blockRows.sort(Comparator.comparing(Availability::getDay)
+            intervals.getSelectionModel().clearSelection();
+            intervalRows.removeIf(interval -> Objects.equals(interval.getId(), saved.getId()));
+            intervalRows.add(saved);
+            intervalRows.sort(Comparator.comparing(Availability::getDay)
                     .thenComparing(Availability::getStartTime, Comparator.nullsLast(Comparator.naturalOrder()))
-                    .thenComparing(Availability::getBlockNumber).thenComparing(Availability::getId));
-            updateBlockPlaceholder();
+                    .thenComparing(Availability::getId));
+            updateIntervalPlaceholder();
             day.getSelectionModel().clearSelection();
             startTime.clear();
             endTime.clear();
         }, this::message);
     }
 
-    @FXML private void deleteBlock() {
-        Availability block = blocks.getSelectionModel().getSelectedItem();
-        if (block != null) {
-            Dialogs.confirm(catalogs, "Eliminar bloque", "¿Eliminar el bloque seleccionado?",
-                    () -> run("Bloque eliminado.", () -> {
-                service.deleteAvailability(block.getId());
-                return block;
+    @FXML private void deleteInterval() {
+        Availability interval = intervals.getSelectionModel().getSelectedItem();
+        if (interval != null) {
+            Dialogs.confirm(catalogs, "Eliminar intervalo", "¿Eliminar el intervalo seleccionado?",
+                    () -> run("Intervalo eliminado.", () -> {
+                service.deleteAvailability(interval.getId());
+                return interval;
             }, removed -> {
-                blocks.getSelectionModel().clearSelection();
-                blockRows.remove(removed);
-                updateBlockPlaceholder();
+                intervals.getSelectionModel().clearSelection();
+                intervalRows.remove(removed);
+                updateIntervalPlaceholder();
             }, this::message));
         }
     }
@@ -327,17 +327,17 @@ public class CatalogController {
             teacherRows.setAll(items);
             teachers.getSelectionModel().clearSelection();
             refreshingTeachers = false;
-            showBlocks(null, List.of());
+            showIntervals(null, List.of());
             filteredTeachers.stream().filter(teacher -> Objects.equals(teacher.getId(), selectedId))
                     .findFirst().ifPresent(teachers.getSelectionModel()::select);
         }, this::message);
     }
 
-    private void showBlocks(Teacher teacher, List<Availability> items) {
+    private void showIntervals(Teacher teacher, List<Availability> items) {
         availabilityTitle.setText(teacher == null ? "Selecciona un docente" : teacher.getName());
-        blocks.getSelectionModel().clearSelection();
-        blockRows.setAll(items);
-        updateBlockPlaceholder();
+        intervals.getSelectionModel().clearSelection();
+        intervalRows.setAll(items);
+        updateIntervalPlaceholder();
         day.getSelectionModel().clearSelection();
         startTime.clear();
         endTime.clear();

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.chart.*?>
 <ScrollPane fx:id="dashboard" xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.practice.aulaequilibrio.controller.DashboardController"
             fitToWidth="true" hbarPolicy="NEVER" styleClass="dashboard-scroll">
@@ -61,6 +62,35 @@
                     <Label fx:id="coverageDetail" wrapText="true" styleClass="muted"/>
                 </VBox>
             </TilePane>
+            <TilePane fx:id="piePanels" hgap="12" vgap="12" prefColumns="2" prefTileWidth="410">
+                <VBox spacing="7" maxWidth="Infinity" styleClass="panel">
+                    <Label text="Estado de las aulas" styleClass="card-title"/>
+                    <Label text="Catálogo completo · pulsa una porción para revisar aulas." wrapText="true" styleClass="muted"/>
+                    <StackPane>
+                        <PieChart fx:id="roomPie" prefHeight="265" labelsVisible="false" animated="false" legendSide="BOTTOM"/>
+                        <Label fx:id="roomChartEmpty" text="Todavía no hay aulas registradas." mouseTransparent="true" styleClass="muted"/>
+                    </StackPane>
+                </VBox>
+                <VBox spacing="7" maxWidth="Infinity" styleClass="panel">
+                    <Label text="Sesiones cubiertas y pendientes" styleClass="card-title"/>
+                    <Label text="Versión seleccionada · cada grupo cuenta hasta su requerimiento." wrapText="true" styleClass="muted"/>
+                    <StackPane>
+                        <PieChart fx:id="coveragePie" prefHeight="265" labelsVisible="false" animated="false" legendSide="BOTTOM"/>
+                        <Label fx:id="coverageChartEmpty" text="Sin sesiones requeridas o sin versión." mouseTransparent="true" styleClass="muted"/>
+                    </StackPane>
+                </VBox>
+            </TilePane>
+            <VBox spacing="7" styleClass="panel">
+                <Label text="Distribución semanal de sesiones" styleClass="card-title"/>
+                <Label text="Cantidad de asignaciones por día en esta versión. Pulsa una barra para abrir Horarios." wrapText="true" styleClass="muted"/>
+                <StackPane>
+                    <BarChart fx:id="weekChart" prefHeight="260" animated="false" legendVisible="false">
+                        <xAxis><CategoryAxis label="Día de la semana"/></xAxis>
+                        <yAxis><NumberAxis label="Sesiones" minorTickVisible="false" forceZeroInRange="true"/></yAxis>
+                    </BarChart>
+                    <Label fx:id="weekChartEmpty" text="Esta versión todavía no tiene sesiones." mouseTransparent="true" styleClass="muted"/>
+                </StackPane>
+            </VBox>
             <VBox spacing="10" styleClass="panel">
                 <Label text="Resumen por facultad" styleClass="card-title"/>
                 <Label text="Asignaturas únicas de sus planes, incluyendo optativas. Aulas y sesiones corresponden a la versión seleccionada."
@@ -95,7 +125,7 @@
                     </ScrollPane>
                 </VBox>
             </SplitPane>
-            <Label text="Cobertura = sesiones asignadas frente a las requeridas por cada grupo con asignatura, con un máximo del 100% por grupo. Estos indicadores no validan cruces de horario. Aulas disponibles indica su estado, no que estén libres en todos los bloques."
+            <Label text="Cobertura = sesiones asignadas frente a las requeridas por cada grupo con asignatura, con un máximo del 100% por grupo. Estos indicadores no validan cruces de horario. Aulas disponibles indica su estado, no que estén libres en todo el horario."
                    wrapText="true" styleClass="muted"/>
         </VBox>
     </content>
