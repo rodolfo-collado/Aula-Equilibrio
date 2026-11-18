@@ -17,6 +17,10 @@ public class ClassroomType {
     @Column(nullable=false,unique=true,length=60)
     @Setter
     private String name;
+
+    @Column(length = 160)
+    @Setter
+    private String description;
     @OneToMany(mappedBy="type")
     private List<Classroom> classrooms=new ArrayList<>();
     @Override

@@ -38,7 +38,9 @@ En **Oferta académica**, selecciona una asignatura para ver sus grupos. El form
 
 Cada grupo pertenece a una asignatura y permite definir código, cupo, demanda estimada y profesor. El profesor puede quedar pendiente. Para un grupo con horario, primero ajusta sus asignaciones antes de cambiar el profesor. Los registros anteriores conservan sus datos. La semilla vincula los grupos de demostración con sus asignaturas.
 
-En **Aulas**, crea primero un tipo en el panel lateral y luego registra un aula con ese tipo. Selecciona una fila de **Tipos de aula** para filtrar la tabla principal o pulsa **Todos los tipos** para quitar el filtro. En **Horarios**, el aula aparecerá entre las opciones de una asignación.
+En **Aulas**, crea primero un tipo con nombre y descripción en el panel lateral y luego registra un aula con código, capacidad, tipo y estado (disponible, mantenimiento o inactiva). Selecciona una fila de **Tipos de aula** para filtrar la tabla principal o pulsa **Todos los tipos** para quitar ese filtro. La búsqueda por código/tipo y el filtro de estado se pueden combinar.
+
+Los formularios y confirmaciones permanecen dentro del escritorio MDI. Los catálogos se cargan y guardan en segundo plano. No se puede borrar un tipo con aulas, reducir la capacidad por debajo del cupo de un grupo asignado ni inhabilitar un aula que conserva asignaciones. En **Horarios**, solo se pueden guardar asignaciones en aulas disponibles con capacidad suficiente.
 
 En **Facultades y carreras**, selecciona una facultad para ver sus carreras. Cada tabla permite agregar, editar o eliminar registros. Para borrar una facultad, primero elimina o reasigna las carreras que la referencian.
 

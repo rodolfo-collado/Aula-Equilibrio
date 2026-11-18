@@ -18,12 +18,17 @@
                         <Button fx:id="deleteClassroomButton" text="Eliminar aula" onAction="#deleteClassroom" styleClass="danger"/>
                         <Button text="Actualizar" onAction="#refresh"/>
                     </FlowPane>
+                    <FlowPane hgap="7" vgap="6">
+                        <TextField fx:id="search" promptText="Buscar por código o tipo" prefWidth="240"/>
+                        <ComboBox fx:id="stateFilter" promptText="Todos los estados" prefWidth="190"/>
+                    </FlowPane>
                     <TableView fx:id="classroomTable" VBox.vgrow="ALWAYS">
                         <placeholder><Label text="No hay aulas para esta selección."/></placeholder>
                         <columns>
                             <TableColumn fx:id="codeColumn" text="Código" prefWidth="140"/>
                             <TableColumn fx:id="capacityColumn" text="Capacidad" prefWidth="110"/>
                             <TableColumn fx:id="classroomTypeColumn" text="Tipo de aula" prefWidth="210"/>
+                            <TableColumn fx:id="stateColumn" text="Estado" prefWidth="150"/>
                         </columns>
                     </TableView>
                 </VBox>
@@ -40,6 +45,7 @@
                         <placeholder><Label text="No hay tipos de aula registrados."/></placeholder>
                         <columns>
                             <TableColumn fx:id="typeNameColumn" text="Nombre" prefWidth="250"/>
+                            <TableColumn fx:id="descriptionColumn" text="Descripción" prefWidth="260"/>
                         </columns>
                     </TableView>
                 </VBox>

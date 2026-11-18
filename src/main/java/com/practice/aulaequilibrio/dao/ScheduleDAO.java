@@ -2,6 +2,7 @@ package com.practice.aulaequilibrio.dao;
 
 import com.practice.aulaequilibrio.config.HibernateUtil;
 import com.practice.aulaequilibrio.model.Classroom;
+import com.practice.aulaequilibrio.model.ClassroomStatus;
 import com.practice.aulaequilibrio.model.Groupe;
 import com.practice.aulaequilibrio.model.ScheduleAssignment;
 import com.practice.aulaequilibrio.model.ScheduleData.Catalogs;
@@ -103,8 +104,15 @@ public class ScheduleDAO {
             Groupe group = required(session, Groupe.class, placement.groupId(), "un grupo");
             Subject subject = required(session, Subject.class, placement.subjectId(), "una asignatura");
             Teacher teacher = required(session, Teacher.class, placement.teacherId(), "un docente");
-            Classroom classroom = required(session, Classroom.class, placement.classroomId(), "un aula");
+            Classroom classroom = placement.classroomId() == null ? null
+                    : session.find(Classroom.class, placement.classroomId(), LockModeType.PESSIMISTIC_READ);
+            if (classroom == null) {
+                throw new IllegalArgumentException("Selecciona un aula que exista en el catálogo.");
+            }
 
+            if (classroom.getState() != ClassroomStatus.DISPONIBLE) {
+                throw new IllegalArgumentException("El aula seleccionada está inactiva o en mantenimiento.");
+            }
             if (group.getSubject() != null && !group.getSubject().getId().equals(subject.getId())) {
                 throw new IllegalArgumentException("La asignatura debe coincidir con la del grupo.");
             }
@@ -114,7 +122,8 @@ public class ScheduleDAO {
             if (!teacher.isActive()) {
                 throw new IllegalArgumentException("El profesor seleccionado está inactivo.");
             }
-            if (group.getSubject() != null && group.getCapacity() > classroom.getCapacidad()) {
+            int requiredSeats = group.getSubject() == null ? group.getCantidadEstudiantes() : group.getCapacity();
+            if (requiredSeats > classroom.getCapacidad()) {
                 throw new IllegalArgumentException("El aula no tiene capacidad suficiente para el cupo del grupo.");
             }
             checkConflicts(session, versionId, assignmentId, placement);

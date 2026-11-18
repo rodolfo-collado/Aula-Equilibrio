@@ -4,6 +4,8 @@ import com.practice.aulaequilibrio.dao.ClassroomDAO;
 import com.practice.aulaequilibrio.dao.ClassroomTypeDAO;
 import com.practice.aulaequilibrio.model.Classroom;
 import com.practice.aulaequilibrio.model.ClassroomType;
+import com.practice.aulaequilibrio.model.ClassroomStatus;
+import com.practice.aulaequilibrio.util.Validations;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -29,8 +31,16 @@ public class ClassroomService {
         classrooms.guardar(classroom);
     }
 
+    public void saveClassroom(Integer id, long revision, String code, int capacity, Integer typeId, ClassroomStatus state) {
+        classrooms.save(id, revision, Validations.required(code, "código", 20), capacity, typeId, state);
+    }
+
     public void saveType(ClassroomType type) {
         types.guardar(type);
+    }
+
+    public void saveType(Integer id, long revision, String name, String description) {
+        types.save(id, revision, Validations.required(name, "nombre", 60), description);
     }
 
     public void deleteClassroom(Classroom classroom) {
