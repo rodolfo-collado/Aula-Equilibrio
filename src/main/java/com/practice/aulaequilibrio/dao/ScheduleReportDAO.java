@@ -2,7 +2,10 @@ package com.practice.aulaequilibrio.dao;
 
 import com.practice.aulaequilibrio.config.HibernateUtil;
 import com.practice.aulaequilibrio.model.DashboardData.VersionOption;
+import com.practice.aulaequilibrio.model.ScheduleReportData.Interval;
 import com.practice.aulaequilibrio.model.ScheduleReportData.SessionRow;
+import com.practice.aulaequilibrio.model.ScheduleReportData.TeacherInfo;
+import com.practice.aulaequilibrio.model.ScheduleReportData.TeacherLoadFacts;
 import org.hibernate.SessionFactory;
 
 import java.util.List;
@@ -29,5 +32,20 @@ public class ScheduleReportDAO {
                 where a.version.id = :version and a.startTime is not null and a.endTime is not null
                 order by a.day, a.startTime, c.codigo
                 """, SessionRow.class).setParameter("version", versionId).getResultList());
+    }
+
+    /** Docentes, sus sesiones en la versión y sus intervalos de disponibilidad definidos. */
+    public TeacherLoadFacts teacherLoad(int versionId) {
+        return factory.get().fromTransaction(session -> new TeacherLoadFacts(
+                session.createSelectionQuery("select t.id, t.name, t.active from Teacher t order by t.name, t.id",
+                        TeacherInfo.class).getResultList(),
+                session.createSelectionQuery("""
+                        select a.teacher.id, a.day, a.startTime, a.endTime from ScheduleAssignment a
+                        where a.version.id = :version and a.startTime is not null and a.endTime > a.startTime
+                        """, Interval.class).setParameter("version", versionId).getResultList(),
+                session.createSelectionQuery("""
+                        select a.teacher.id, a.day, a.startTime, a.endTime from Availability a
+                        where a.startTime is not null and a.endTime > a.startTime
+                        """, Interval.class).getResultList()));
     }
 }

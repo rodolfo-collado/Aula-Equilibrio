@@ -44,6 +44,35 @@ class ScheduleReportDAOTest {
         assertEquals(2, dao.versions().size());
     }
 
+    @Test void teacherLoadIncludesTeachersWithoutSessionsAndOnlyDefinedAvailability() {
+        int version = factory.fromTransaction(s -> {
+            Subject subject = DashboardDAOTest.subject("PROG", 2); s.persist(subject);
+            Teacher ana = new Teacher(); ana.setName("Ana"); s.persist(ana);
+            Teacher luis = new Teacher(); luis.setName("Luis"); luis.setActive(false); s.persist(luis);
+            s.persist(availability(ana, 1, LocalTime.of(7, 0), LocalTime.of(12, 0)));
+            s.persist(availability(luis, 2, null, null));
+            Groupe group = DashboardDAOTest.group(subject, ana, "G1"); s.persist(group);
+            ClassroomType type = new ClassroomType(); type.setName("General"); s.persist(type);
+            Classroom room = DashboardDAOTest.room(type, "A1"); s.persist(room);
+            ScheduleVersion first = new ScheduleVersion("Primera"); s.persist(first);
+            persist(s, first, group, subject, ana, room, 1, LocalTime.of(8, 0));
+            return first.getId();
+        });
+
+        var facts = dao.teacherLoad(version);
+        assertEquals(2, facts.teachers().size());
+        assertFalse(facts.teachers().get(1).active());
+        assertEquals(1, facts.assigned().size());
+        assertEquals(1, facts.available().size());
+        assertEquals(LocalTime.of(12, 0), facts.available().getFirst().end());
+    }
+
+    private static Availability availability(Teacher teacher, int day, LocalTime start, LocalTime end) {
+        Availability value = new Availability();
+        value.setTeacher(teacher); value.setDay(day); value.setStartTime(start); value.setEndTime(end);
+        return value;
+    }
+
     private static void persist(org.hibernate.Session s, ScheduleVersion version, Groupe group, Subject subject,
                                 Teacher teacher, Classroom room, int day, LocalTime start) {
         var assignment = new ScheduleAssignment(version);

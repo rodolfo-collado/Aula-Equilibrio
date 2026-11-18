@@ -1,6 +1,7 @@
 package com.practice.aulaequilibrio.model;
 
 import java.time.LocalTime;
+import java.util.List;
 
 /**
  * Filas de solo lectura para los reportes de horarios y carga docente.
@@ -12,6 +13,12 @@ public final class ScheduleReportData {
     public record SessionRow(Integer groupId, String group, Integer teacherId, String teacher,
                              Integer classroomId, String classroom, String subject,
                              int day, LocalTime start, LocalTime end) {}
+
+    public record TeacherInfo(Integer id, String name, boolean active) {}
+
+    public record Interval(Integer teacherId, int day, LocalTime start, LocalTime end) {}
+
+    public record TeacherLoadFacts(List<TeacherInfo> teachers, List<Interval> assigned, List<Interval> available) {}
 
     public enum Scope {
         GROUP("Grupo"), TEACHER("Docente"), CLASSROOM("Aula");
