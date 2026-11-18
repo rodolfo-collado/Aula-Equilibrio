@@ -1,0 +1,27 @@
+name: Verificar aplicación
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Compilar y probar
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Preparar JavaFX y pantalla virtual
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgtk-3-0t64
+      - name: Compilar y ejecutar pruebas ORM y JavaFX
+        run: xvfb-run -a ./mvnw -B verify
