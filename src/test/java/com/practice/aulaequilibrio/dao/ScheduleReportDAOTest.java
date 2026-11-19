@@ -67,6 +67,38 @@ class ScheduleReportDAOTest {
         assertEquals(LocalTime.of(12, 0), facts.available().getFirst().end());
     }
 
+    @Test void roomOccupancyKeepsUnusedRoomsAndFiltersByDayAndVersion() {
+        int version = factory.fromTransaction(s -> {
+            Subject subject = DashboardDAOTest.subject("PROG", 2); s.persist(subject);
+            Teacher teacher = new Teacher(); teacher.setName("Ana"); s.persist(teacher);
+            Groupe group = DashboardDAOTest.group(subject, teacher, "G1"); s.persist(group);
+            ClassroomType type = new ClassroomType(); type.setName("General"); s.persist(type);
+            Classroom room = DashboardDAOTest.room(type, "A1"); s.persist(room);
+            Classroom unused = DashboardDAOTest.room(type, "A2");
+            unused.setState(ClassroomStatus.MANTENIMIENTO); s.persist(unused);
+            ScheduleVersion first = new ScheduleVersion("Primera"), other = new ScheduleVersion("Otra");
+            s.persist(first); s.persist(other);
+            persist(s, first, group, subject, teacher, room, 1, LocalTime.of(8, 0));
+            persist(s, first, group, subject, teacher, room, 7, LocalTime.of(9, 0));
+            persist(s, first, group, subject, teacher, room, 1, null);
+            persist(s, other, group, subject, teacher, room, 1, LocalTime.of(10, 0));
+            return first.getId();
+        });
+
+        var week = dao.roomOccupancy(version, null);
+        assertEquals(2, week.size());
+        assertEquals(2, week.getFirst().sessions());
+        assertEquals(120, week.getFirst().occupiedMinutes());
+        assertEquals("A2", week.getLast().classroom());
+        assertEquals(0, week.getLast().occupiedMinutes());
+        assertNull(week.getLast().usage(14 * 60));
+
+        var monday = dao.roomOccupancy(version, 1);
+        assertEquals(1, monday.getFirst().sessions());
+        assertEquals(60, monday.getFirst().occupiedMinutes());
+        assertEquals(0, monday.getLast().sessions());
+    }
+
     private static Availability availability(Teacher teacher, int day, LocalTime start, LocalTime end) {
         Availability value = new Availability();
         value.setTeacher(teacher); value.setDay(day); value.setStartTime(start); value.setEndTime(end);

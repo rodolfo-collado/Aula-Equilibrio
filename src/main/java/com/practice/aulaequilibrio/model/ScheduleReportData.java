@@ -4,7 +4,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 /**
- * Filas de solo lectura para los reportes de horarios y carga docente.
+ * Filas de solo lectura para los reportes académicos.
  */
 public final class ScheduleReportData {
     private ScheduleReportData() {
@@ -23,6 +23,13 @@ public final class ScheduleReportData {
     /** Uso de la disponibilidad; {@code usage} es nulo cuando el docente no tiene horas disponibles. */
     public record TeacherLoadRow(Integer teacherId, String teacher, boolean active, int sessions,
                                  long assignedMinutes, long availableMinutes, Double usage) {}
+
+    public record RoomOccupancyRow(String classroom, String type, int capacity, ClassroomStatus state,
+                                   long sessions, long occupiedMinutes) {
+        public Double usage(long periodMinutes) {
+            return state == ClassroomStatus.DISPONIBLE ? (double) occupiedMinutes / periodMinutes : null;
+        }
+    }
 
     public enum Scope {
         GROUP("Grupo"), TEACHER("Docente"), CLASSROOM("Aula");

@@ -3,10 +3,13 @@ package com.practice.aulaequilibrio.service;
 import com.practice.aulaequilibrio.dao.ScheduleReportDAO;
 import com.practice.aulaequilibrio.model.DashboardData.VersionOption;
 import com.practice.aulaequilibrio.model.ScheduleReportData.Option;
+import com.practice.aulaequilibrio.model.ScheduleReportData.RoomOccupancyRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.Scope;
 import com.practice.aulaequilibrio.model.ScheduleReportData.SessionRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.TeacherLoadRow;
+import com.practice.aulaequilibrio.util.TimeIntervals;
 
+import java.time.Duration;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +34,30 @@ public class ScheduleReportService {
 
     public List<TeacherLoadRow> teacherLoad(Integer versionId) {
         return versionId == null ? List.of() : TeacherLoadCalculator.rows(dao.teacherLoad(versionId));
+    }
+
+    public List<RoomOccupancyRow> roomOccupancy(Integer versionId, Integer day) {
+        return versionId == null ? List.of() : dao.roomOccupancy(versionId, day);
+    }
+
+    public static long roomPeriodMinutes(Integer day) {
+        long dailyMinutes = Duration.between(TimeIntervals.OPENING, TimeIntervals.CLOSING).toMinutes();
+        return day == null ? dailyMinutes * DAYS.size() : dailyMinutes;
+    }
+
+    public static List<Map<String, ?>> roomOccupancyFields(List<RoomOccupancyRow> rows, Integer day) {
+        long periodMinutes = roomPeriodMinutes(day);
+        return rows.stream().<Map<String, ?>>map(row -> {
+            Map<String, Object> fields = new HashMap<>();
+            fields.put("aula", row.classroom());
+            fields.put("tipo", row.type());
+            fields.put("capacidad", row.capacity());
+            fields.put("estado", row.state().toString());
+            fields.put("sesiones", row.sessions());
+            fields.put("horas", row.occupiedMinutes() / 60.0);
+            fields.put("uso", row.usage(periodMinutes));
+            return fields;
+        }).toList();
     }
 
     /** Grupos, docentes o aulas presentes en la versión, ordenados por nombre. */

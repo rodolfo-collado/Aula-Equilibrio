@@ -3,6 +3,7 @@ package com.practice.aulaequilibrio.dao;
 import com.practice.aulaequilibrio.config.HibernateUtil;
 import com.practice.aulaequilibrio.model.DashboardData.VersionOption;
 import com.practice.aulaequilibrio.model.ScheduleReportData.Interval;
+import com.practice.aulaequilibrio.model.ScheduleReportData.RoomOccupancyRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.SessionRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.TeacherInfo;
 import com.practice.aulaequilibrio.model.ScheduleReportData.TeacherLoadFacts;
@@ -32,6 +33,19 @@ public class ScheduleReportDAO {
                 where a.version.id = :version and a.startTime is not null and a.endTime is not null
                 order by a.day, a.startTime, c.codigo
                 """, SessionRow.class).setParameter("version", versionId).getResultList());
+    }
+
+    public List<RoomOccupancyRow> roomOccupancy(int versionId, Integer day) {
+        return factory.get().fromTransaction(session -> session.createSelectionQuery("""
+                select c.codigo, t.name, c.capacidad, c.state, count(a.id),
+                       coalesce(sum(timestampdiff(minute, a.startTime, a.endTime)), 0L)
+                from Classroom c join c.type t
+                left join ScheduleAssignment a on a.classroom = c and a.version.id = :version
+                    and a.endTime > a.startTime and a.day = coalesce(:day, a.day)
+                group by c.id, c.codigo, t.name, c.capacidad, c.state
+                order by c.codigo
+                """, RoomOccupancyRow.class)
+                .setParameter("version", versionId).setParameter("day", day).getResultList());
     }
 
     /** Docentes, sus sesiones en la versión y sus intervalos de disponibilidad definidos. */

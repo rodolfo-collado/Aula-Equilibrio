@@ -4,6 +4,7 @@ import com.practice.aulaequilibrio.dao.DashboardDAOTest;
 import com.practice.aulaequilibrio.dao.ScheduleReportDAO;
 import com.practice.aulaequilibrio.model.*;
 import com.practice.aulaequilibrio.model.ScheduleReportData.Option;
+import com.practice.aulaequilibrio.model.ScheduleReportData.RoomOccupancyRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.Scope;
 import com.practice.aulaequilibrio.service.ScheduleReportService;
 import javafx.application.Platform;
@@ -21,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class ReportScreenTest {
-    @Test void scheduleTabListsAndFiltersSessionsOfTheLatestVersion() throws Exception {
+    @Test void reportTabsListAndFilterDataOfTheLatestVersion() throws Exception {
         assumeTrue(System.getenv("DISPLAY") != null, "La prueba visual requiere un servidor gráfico.");
         try { Platform.startup(() -> Platform.setImplicitExit(false)); }
         catch (IllegalStateException alreadyStarted) { /* JavaFX ya está inicializado. */ }
@@ -47,6 +48,7 @@ class ReportScreenTest {
                 loader.setControllerFactory(type -> type == ScheduleReportController.class
                         ? new ScheduleReportController(service)
                         : type == TeacherLoadReportController.class ? new TeacherLoadReportController(service)
+                        : type == RoomOccupancyReportController.class ? new RoomOccupancyReportController(service)
                         : construct(type));
                 Parent view = loader.load();
                 Stage stage = new Stage(); stage.setScene(new Scene(view, 1000, 660)); stage.show();
@@ -69,6 +71,25 @@ class ReportScreenTest {
             waitFor(() -> teachers.getItems().size() == 2);
             assertEquals("2 docentes · 0 activos sin sesiones asignadas.",
                     fx(() -> ((Label) teachers.getParent().lookup("#status")).getText()));
+            Parent occupancy = fx(() -> {
+                TabPane tabs = (TabPane) root.lookup("#reports");
+                var tab = tabs.getTabs().stream().filter(t -> "Ocupación de aulas".equals(t.getText()))
+                        .findFirst().orElseThrow();
+                tabs.getSelectionModel().select(tab);
+                return (Parent) tab.getContent();
+            });
+            @SuppressWarnings("unchecked")
+            TableView<RoomOccupancyRow> rooms = fx(() -> (TableView<RoomOccupancyRow>) occupancy.lookup("#rooms"));
+            waitFor(() -> rooms.getItems().size() == 1 && rooms.getItems().getFirst().sessions() == 2);
+            fx(() -> {
+                @SuppressWarnings("unchecked") var day = (ComboBox<Option>) occupancy.lookup("#day");
+                day.setValue(day.getItems().stream().filter(o -> "Martes".equals(o.label())).findFirst().orElseThrow());
+                return null;
+            });
+            waitFor(() -> rooms.getItems().size() == 1 && rooms.getItems().getFirst().sessions() == 1);
+            assertEquals(60, fx(() -> rooms.getItems().getFirst().occupiedMinutes()));
+            assertFalse(fx(() -> occupancy.lookup("#pdfButton").isDisabled()));
+            assertFalse(fx(() -> occupancy.lookup("#excelButton").isDisabled()));
             fx(() -> { root.getScene().getWindow().hide(); return null; });
         }
     }

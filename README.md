@@ -44,7 +44,11 @@ Al iniciar se ejecuta `sql/migrate_time_intervals.sql`, que elimina las antiguas
 
 ## Reportes
 
-Abre **Reportes** desde la barra superior. La pestaña **Horario** lista las sesiones de una versión y permite filtrarlas por grupo, docente o aula. **Carga docente** compara las horas asignadas de cada docente con su disponibilidad semanal; sin disponibilidad registrada, el uso se muestra como **—**. **Ocupación de aulas** está en desarrollo.
+Abre **Reportes** desde la barra superior.
+
+- **Horario** lista las sesiones de una versión y permite filtrarlas por grupo, docente o aula.
+- **Carga docente** compara las horas asignadas con la disponibilidad semanal del docente. Cuando no hay disponibilidad registrada, el uso aparece como **—**.
+- **Ocupación de aulas** muestra las sesiones y horas reservadas de cada aula por versión y día o semana. El porcentaje usa una jornada de **07:00 a 21:00** de lunes a domingo. Para aulas en mantenimiento o inactivas se muestra **—**.
 
 Cada pestaña exporta su selección con JasperReports a **PDF** o **Excel (.xlsx)**. Los diseños `.jrxml` se editan con Jaspersoft Studio 7.0.x; consulta [docs/REPORTES.md](docs/REPORTES.md) para crear o modificar un reporte.
 

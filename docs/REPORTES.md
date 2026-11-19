@@ -2,6 +2,8 @@
 
 La ventana **Reportes** (barra superior) tiene una pestaña por reporte. Cada pestaña muestra una vista previa con filtros en JavaFX y genera el documento final con JasperReports en **PDF** o **Excel (.xlsx)**. Después de guardar, el archivo se abre con la aplicación predeterminada del sistema.
 
+En **Ocupación de aulas**, selecciona una versión y elige un día o **Semana completa**. El reporte muestra todas las aulas, incluidas las que tienen cero sesiones. El porcentaje divide las horas reservadas entre 14 horas para un día o 98 para la semana completa. Las aulas en mantenimiento o inactivas muestran **—**. Solo se cuentan las sesiones con intervalos definidos.
+
 ## Herramientas
 
 - **Jaspersoft Studio 7.0.x** (Community). El proyecto usa JasperReports **7.0.3**; los `.jrxml` de la versión 6 tienen otro formato y no son compatibles.
@@ -40,7 +42,8 @@ La ventana **Reportes** (barra superior) tiene una pestaña por reporte. Cada pe
    ```java
    ReportActions.export(tabla, "/com/practice/aulaequilibrio/reports/ocupacion-aulas.jrxml",
            Map.of("TITULO", "Ocupación de aulas", "SUBTITULO", "Versión: " + version),
-           RoomReportService.fields(List.copyOf(tabla.getItems())), Format.PDF, "ocupacion aulas");
+           ScheduleReportService.roomOccupancyFields(List.copyOf(tabla.getItems()), dia),
+           Format.PDF, "ocupacion aulas");
    ```
 
 7. Agrega una prueba en `ReportDesignsTest` que llene el diseño con dos o tres filas y compruebe los textos con `ReportEngineTest.texts(print)`.

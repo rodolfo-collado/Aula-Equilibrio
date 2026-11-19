@@ -1,5 +1,7 @@
 package com.practice.aulaequilibrio.report;
 
+import com.practice.aulaequilibrio.model.ClassroomStatus;
+import com.practice.aulaequilibrio.model.ScheduleReportData.RoomOccupancyRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.SessionRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.TeacherLoadRow;
 import com.practice.aulaequilibrio.report.ReportEngine.Format;
@@ -7,6 +9,7 @@ import com.practice.aulaequilibrio.service.ScheduleReportService;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalTime;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -39,5 +42,18 @@ class ReportDesignsTest {
         assertTrue(texts.containsAll(List.of("Ana", "Luis", "30%", "—")));
         assertTrue(texts.contains("Total de sesiones: 3 · Docentes activos sin sesiones: 1"), texts.toString());
         assertTrue(ReportEngine.export(print, Format.PDF).length > 0);
+    }
+
+    @Test void roomOccupancyDesignShowsHoursAndExportsBothFormats() throws Exception {
+        var rooms = List.of(new RoomOccupancyRow("A-101", "Laboratorio", 32, ClassroomStatus.DISPONIBLE, 4, 420),
+                new RoomOccupancyRow("A-102", "General", 40, ClassroomStatus.MANTENIMIENTO, 0, 0));
+        var fields = ScheduleReportService.roomOccupancyFields(rooms, 1);
+        assertEquals(0.5, fields.getFirst().get("uso"));
+        assertNull(fields.getLast().get("uso"));
+        var print = ReportEngine.fill(REPORTS + "ocupacion-aulas.jrxml",
+                Map.of("TITULO", "Ocupación de aulas", "SUBTITULO", "Versión Demo · Lunes"), fields);
+        assertTrue(ReportEngineTest.texts(print).containsAll(List.of("Ocupación de aulas", "A-101", "A-102", "—")));
+        assertEquals("%PDF", new String(ReportEngine.export(print, Format.PDF), 0, 4, StandardCharsets.US_ASCII));
+        assertEquals("PK", new String(ReportEngine.export(print, Format.XLSX), 0, 2, StandardCharsets.US_ASCII));
     }
 }
