@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml" spacing="10" styleClass="panel"
+      fx:controller="com.practice.aulaequilibrio.controller.RoomOccupancyReportController">
+    <Label text="Ocupación de aulas" styleClass="card-title"/>
+    <Label text="Compara las horas reservadas con la jornada de 07:00 a 21:00 del día elegido o de los siete días de la semana."
+           wrapText="true" styleClass="muted"/>
+    <FlowPane hgap="7" vgap="6">
+        <ComboBox fx:id="version" promptText="Versión de horario" prefWidth="240"/>
+        <ComboBox fx:id="day" accessibleText="Periodo de ocupación" prefWidth="170"/>
+        <Button fx:id="refreshButton" text="Actualizar" onAction="#refresh"/>
+        <Button fx:id="pdfButton" text="Exportar PDF" onAction="#exportPdf" styleClass="primary"/>
+        <Button fx:id="excelButton" text="Exportar Excel" onAction="#exportExcel"/>
+    </FlowPane>
+    <TableView fx:id="rooms" VBox.vgrow="ALWAYS">
+        <placeholder><Label fx:id="empty" text="Selecciona una versión de horario."/></placeholder>
+        <columns>
+            <TableColumn fx:id="roomColumn" text="Aula" prefWidth="105"/>
+            <TableColumn fx:id="typeColumn" text="Tipo de aula" prefWidth="190"/>
+            <TableColumn fx:id="capacityColumn" text="Capacidad" prefWidth="85"/>
+            <TableColumn fx:id="stateColumn" text="Estado" prefWidth="120"/>
+            <TableColumn fx:id="sessionsColumn" text="Sesiones" prefWidth="80"/>
+            <TableColumn fx:id="hoursColumn" text="Horas reservadas" prefWidth="120"/>
+            <TableColumn fx:id="usageColumn" text="Ocupación" prefWidth="95"/>
+        </columns>
+    </TableView>
+    <Label fx:id="status" wrapText="true" styleClass="muted"/>
+</VBox>

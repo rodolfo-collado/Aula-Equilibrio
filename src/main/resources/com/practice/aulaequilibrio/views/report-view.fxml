@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" styleClass="module-page">
+    <center>
+        <VBox spacing="12">
+            <Label text="Reportes" styleClass="page-title"/>
+            <TabPane fx:id="reports" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+                <Tab text="Horario">
+                    <fx:include source="report-schedule.fxml"/>
+                </Tab>
+                <Tab text="Carga docente">
+                    <fx:include source="report-teachers.fxml"/>
+                </Tab>
+                <Tab text="Ocupación de aulas">
+                    <fx:include source="report-rooms.fxml"/>
+                </Tab>
+            </TabPane>
+        </VBox>
+    </center>
+</BorderPane>

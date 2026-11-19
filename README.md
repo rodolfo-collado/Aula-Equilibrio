@@ -66,6 +66,16 @@ Para ver cómo se detecta un cruce, selecciona una clase y pulsa **Nueva sesión
 
 ![Editor con avisos de cruce de grupo y docente y botón de guardado deshabilitado](docs/capturas/validacion-horario.png)
 
+### Reportes
+
+Abre **Reportes** desde la barra superior.
+
+- **Horario** lista las sesiones de una versión y permite filtrarlas por grupo, docente o aula.
+- **Carga docente** compara las horas asignadas con la disponibilidad semanal del docente. Cuando no hay disponibilidad registrada, el uso aparece como **—**.
+- **Ocupación de aulas** muestra las sesiones y horas reservadas de cada aula por versión y día o semana. El porcentaje usa una jornada de **07:00 a 21:00** de lunes a domingo. Para aulas en mantenimiento o inactivas se muestra **—**.
+
+Cada pestaña exporta su selección con JasperReports a **PDF** o **Excel (.xlsx)**. Puedes editar los diseños `.jrxml` con Jaspersoft Studio 7.0.x. Consulta la [guía de reportes](docs/REPORTES.md) para crear o modificar un diseño.
+
 ### Docentes y disponibilidad
 
 Selecciona un docente para ver y editar sus intervalos de disponibilidad. En los datos de ejemplo, selecciona a Elena y luego a Mateo para comprobar cómo cambia la lista de intervalos. El planificador usa estos datos para evitar asignar clases fuera de la disponibilidad registrada.

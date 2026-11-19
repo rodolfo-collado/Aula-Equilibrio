@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml" spacing="10" styleClass="panel"
+      fx:controller="com.practice.aulaequilibrio.controller.ScheduleReportController">
+    <Label text="Horario semanal" styleClass="card-title"/>
+    <FlowPane hgap="7" vgap="6">
+        <ComboBox fx:id="version" promptText="Versión de horario" prefWidth="240"/>
+        <ComboBox fx:id="scope" promptText="Ver por" prefWidth="130"/>
+        <ComboBox fx:id="resource" promptText="Todos" prefWidth="210"/>
+        <Button fx:id="refreshButton" text="Actualizar" onAction="#refresh"/>
+        <Button fx:id="pdfButton" text="Exportar PDF" onAction="#exportPdf" styleClass="primary"/>
+        <Button fx:id="excelButton" text="Exportar Excel" onAction="#exportExcel"/>
+    </FlowPane>
+    <TableView fx:id="sessions" VBox.vgrow="ALWAYS">
+        <placeholder><Label fx:id="empty" text="Selecciona una versión de horario."/></placeholder>
+        <columns>
+            <TableColumn fx:id="dayColumn" text="Día" prefWidth="100"/>
+            <TableColumn fx:id="startColumn" text="Inicio" prefWidth="75"/>
+            <TableColumn fx:id="endColumn" text="Fin" prefWidth="75"/>
+            <TableColumn fx:id="subjectColumn" text="Asignatura" prefWidth="200"/>
+            <TableColumn fx:id="groupColumn" text="Grupo" prefWidth="110"/>
+            <TableColumn fx:id="teacherColumn" text="Docente" prefWidth="180"/>
+            <TableColumn fx:id="classroomColumn" text="Aula" prefWidth="100"/>
+        </columns>
+    </TableView>
+    <Label fx:id="status" wrapText="true" styleClass="muted"/>
+</VBox>
