@@ -6,6 +6,7 @@ import com.practice.aulaequilibrio.util.ErrorMessages;
 import com.practice.aulaequilibrio.util.Validations;
 import com.practice.aulaequilibrio.util.ValidationException;
 import lombok.RequiredArgsConstructor;
+import com.practice.aulaequilibrio.model.Permission;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,17 +16,24 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public class AcademicOfferService {
     private final AcademicOfferDAO dao;
+    private final AccessControl access;
+
+    public AcademicOfferService(AcademicOfferDAO dao) { this(dao, AccessControl.current()); }
 
     public AcademicOfferService() {
-        this(new AcademicOfferDAO());
+        this(new AcademicOfferDAO(), AccessControl.current());
     }
 
-    public List<Subject> listSubjects() { return dao.listSubjects(); }
-    public List<CareerSubject> listCareers(int subjectId) { return dao.listCareers(subjectId); }
-    public List<Groupe> listGroups(int subjectId) { return dao.listGroups(subjectId); }
+    public List<Subject> listSubjects() {
+        access.require(Permission.READ_ACADEMIC); return dao.listSubjects(); }
+    public List<CareerSubject> listCareers(int subjectId) {
+        access.require(Permission.READ_ACADEMIC); return dao.listCareers(subjectId); }
+    public List<Groupe> listGroups(int subjectId) {
+        access.require(Permission.READ_ACADEMIC); return dao.listGroups(subjectId); }
 
     public Subject saveSubject(Integer id, String code, String name, String hours, String sessions,
                                List<Long> required, List<Long> optional) {
+        access.require(Permission.EDIT_OFFER);
         String cleanCode = Validations.required(code, "código", 20).toUpperCase(Locale.ROOT);
         String cleanName = Validations.required(name, "nombre", 100);
         int minutes;
@@ -43,6 +51,7 @@ public class AcademicOfferService {
     }
 
     public Groupe saveGroup(Integer id, int subjectId, String name, String capacity, String demand, Integer teacherId) {
+        access.require(Permission.EDIT_OFFER);
         String cleanName = Validations.required(name, "código del grupo", 40).toUpperCase(Locale.ROOT);
         int max = Validations.positiveInteger(capacity, "cupo");
         int estimated;
@@ -55,8 +64,10 @@ public class AcademicOfferService {
         return save("el grupo", () -> dao.saveGroup(id, subjectId, cleanName, max, estimated, teacherId));
     }
 
-    public void deleteSubject(int id) { delete("la asignatura", () -> dao.deleteSubject(id)); }
-    public void deleteGroup(int id) { delete("el grupo", () -> dao.deleteGroup(id)); }
+    public void deleteSubject(int id) {
+        access.require(Permission.EDIT_OFFER); delete("la asignatura", () -> dao.deleteSubject(id)); }
+    public void deleteGroup(int id) {
+        access.require(Permission.EDIT_OFFER); delete("el grupo", () -> dao.deleteGroup(id)); }
 
     private static <T> T save(String label, Supplier<T> action) {
         try {

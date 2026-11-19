@@ -1,12 +1,11 @@
 package com.practice.aulaequilibrio;
 
 import com.practice.aulaequilibrio.config.HibernateUtil;
+import com.practice.aulaequilibrio.service.AuthenticationService;
+import com.practice.aulaequilibrio.util.SessionContext;
+import com.practice.aulaequilibrio.view.ApplicationNavigator;
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
-
-import java.io.IOException;
 
 public class AulaEquilibrioApplication extends Application {
     @Override
@@ -14,6 +13,7 @@ public class AulaEquilibrioApplication extends Application {
         try {
             HibernateUtil.verifyConnection();
             HibernateUtil.loadDemoData();
+            new AuthenticationService().prepareRoles();
         } catch (RuntimeException exception) {
             HibernateUtil.shutdown();
             throw exception;
@@ -21,13 +21,11 @@ public class AulaEquilibrioApplication extends Application {
     }
 
     @Override
-    public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(AulaEquilibrioApplication.class.getResource("views/home-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 1040, 740);
+    public void start(Stage stage) {
+        new ApplicationNavigator(stage).showLogin();
         stage.setTitle("Aula Equilibrio");
         stage.setMinWidth(1000);
         stage.setMinHeight(720);
-        stage.setScene(scene);
         stage.setMaximized(true);
         stage.show();
         stage.setFullScreenExitHint("Pulsa Esc para volver al modo ventana.");
@@ -36,6 +34,10 @@ public class AulaEquilibrioApplication extends Application {
 
     @Override
     public void stop() {
-        HibernateUtil.shutdown();
+        try {
+            if (SessionContext.current() != null) new AuthenticationService().logout(SessionContext.current().token());
+        } catch (RuntimeException error) {
+            System.getLogger(getClass().getName()).log(System.Logger.Level.WARNING, "No se pudo registrar el cierre de sesión.");
+        } finally { SessionContext.clear(); HibernateUtil.shutdown(); }
     }
 }

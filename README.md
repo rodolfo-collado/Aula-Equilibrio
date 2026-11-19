@@ -32,7 +32,29 @@ Necesitas **JDK 21** y **PostgreSQL** en marcha. Ejecuta los comandos desde la r
 
 El primer arranque prepara las tablas y carga [los datos de demostración](sql/demo_seed.sql). En una base nueva encontrarás 3 facultades, 5 carreras, 10 asignaturas, 8 docentes, 12 grupos, 8 aulas y un horario de 24 sesiones.
 
-La aplicación abre el dashboard en pantalla completa. Pulsa **Esc** para volver al modo ventana. Abre los módulos desde la barra superior o usa **Inicio → Organizar en cascada** para ver varias ventanas internas.
+La aplicación abre el acceso en pantalla completa. En la primera ejecución aparece el formulario para crear el administrador: elige tu usuario y una contraseña propia. La semilla no crea cuentas ni contraseñas predeterminadas. Una vez autenticado se abre el dashboard. Pulsa **Esc** para volver al modo ventana; cambiar de sesión conserva el tamaño de la aplicación. Abre los módulos desde la barra superior o usa **Inicio → Organizar en cascada** para ver varias ventanas internas.
+
+## Usuarios, roles y auditoría
+
+Las cuentas se guardan con Hibernate en PostgreSQL, separadas de los docentes. Cada usuario tiene un rol persistente. Los permisos se comprueban en los servicios antes de consultar o modificar datos; las pantallas de lectura ocultan los controles de edición.
+
+| Rol | Capacidades |
+| --- | --- |
+| Administrador | Toda la gestión académica, cuentas, roles y auditoría. |
+| Coordinador | Editar facultades/carreras, docentes/disponibilidad, oferta académica, aulas y horarios. |
+| Planificador | Consultar catálogos y reportes; crear, editar y eliminar versiones y sesiones de horario. |
+| Consulta | Consultar dashboard, catálogos, horarios y reportes; exportar reportes. |
+| Auditor | Las consultas anteriores y el historial de cuentas, sin gestionar usuarios ni modificar datos académicos. |
+
+El administrador abre **Inicio → Cuentas y permisos** para crear usuarios, modificar nombre/correo, asignar roles, activar o desactivar cuentas, desbloquear accesos y restablecer contraseñas. Las cuentas se desactivan para conservar su historial. El identificador de acceso permanece estable. No puedes cambiar tu propio rol o estado desde ese panel y se protege la existencia de un administrador activo.
+
+Las cuentas nuevas y los restablecimientos usan una contraseña temporal elegida por el administrador; la persona debe cambiarla antes de acceder al escritorio. **Inicio → Cambiar mi contraseña** permite cambiar la propia, y **Cerrar sesión** devuelve al acceso. No hay recuperación por correo: el administrador restablece el acceso desde el panel.
+
+**Inicio → Auditoría de cuentas** muestra quién realizó cada acción, sobre qué cuenta y cuándo, con filtros por actor/cuenta y acción. El administrador puede seleccionar una cuenta y usar **Ver actividad**. Se muestran los 200 eventos más recientes; un doble clic abre el detalle. Se registran creación y modificación de cuentas, accesos correctos/rechazados, cierres de sesión, cambios/restablecimientos de contraseña y desbloqueos. Los eventos no almacenan contraseñas ni hashes, y no hay controles para editarlos o borrarlos.
+
+Las contraseñas de 12–128 caracteres se almacenan como **PBKDF2-HMAC-SHA256, 600 000 iteraciones y sal aleatoria por cuenta**, siguiendo los parámetros publicados por [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html). Las sesiones usan tokens aleatorios, de los que la base conserva únicamente el hash, y caducan a las 12 horas. Un cambio de rol/estado o contraseña revoca las sesiones anteriores. Cinco accesos fallidos bloquean temporalmente la cuenta durante 15 minutos; el administrador puede desbloquearla. La cuenta inicial se crea una sola vez mediante una transacción serializada, incluso si se abren dos instancias simultáneamente.
+
+Las nuevas tablas son `user_role`, `user_account`, `login_session` y `account_audit`. La actualización es aditiva y no reemplaza los datos académicos existentes.
 
 ## Ejecutar las pruebas
 

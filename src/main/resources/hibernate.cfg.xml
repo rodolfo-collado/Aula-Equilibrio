@@ -17,5 +17,9 @@
         <mapping class="com.practice.aulaequilibrio.model.Faculty"/>
         <mapping class="com.practice.aulaequilibrio.model.Career"/>
         <mapping class="com.practice.aulaequilibrio.model.CareerSubject"/>
+        <mapping class="com.practice.aulaequilibrio.model.UserRole"/>
+        <mapping class="com.practice.aulaequilibrio.model.UserAccount"/>
+        <mapping class="com.practice.aulaequilibrio.model.LoginSession"/>
+        <mapping class="com.practice.aulaequilibrio.model.AccountAudit"/>
     </session-factory>
 </hibernate-configuration>

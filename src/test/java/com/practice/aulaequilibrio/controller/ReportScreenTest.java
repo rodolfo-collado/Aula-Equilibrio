@@ -22,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class ReportScreenTest {
+    @org.junit.jupiter.api.AfterEach void clearLoginContext() { com.practice.aulaequilibrio.util.SessionContext.clear(); }
+
     @Test void reportTabsListAndFilterDataOfTheLatestVersion() throws Exception {
         assumeTrue(System.getenv("DISPLAY") != null, "La prueba visual requiere un servidor gráfico.");
         try { Platform.startup(() -> Platform.setImplicitExit(false)); }
@@ -42,7 +44,7 @@ class ReportScreenTest {
                 var second = new ScheduleAssignment(version);
                 second.assign(g2, subject, luis, room, 2, LocalTime.of(8, 0), LocalTime.of(9, 0)); s.persist(second);
             });
-            var service = new ScheduleReportService(new ScheduleReportDAO(factory));
+            var service = new ScheduleReportService(new ScheduleReportDAO(factory), com.practice.aulaequilibrio.TestUsers.admin(factory));
             Parent root = fx(() -> {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/practice/aulaequilibrio/views/report-view.fxml"));
                 loader.setControllerFactory(type -> type == ScheduleReportController.class

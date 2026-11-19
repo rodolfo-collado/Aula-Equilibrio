@@ -4,6 +4,8 @@ import com.practice.aulaequilibrio.model.ScheduleAssignment;
 import com.practice.aulaequilibrio.model.ScheduleVersion;
 import com.practice.aulaequilibrio.model.ScheduleData.*;
 import com.practice.aulaequilibrio.service.ScheduleService;
+import com.practice.aulaequilibrio.model.Permission;
+import com.practice.aulaequilibrio.util.UiAccess;
 import com.practice.aulaequilibrio.util.Dialogs;
 import com.practice.aulaequilibrio.util.Validations;
 import com.practice.aulaequilibrio.util.ValidationException;
@@ -30,6 +32,7 @@ import java.util.function.Function;
 
 public class ScheduleView extends BorderPane {
     private final ScheduleService service;
+    private final boolean editable;
     private final SimpleBooleanProperty busy = new SimpleBooleanProperty();
     private final ComboBox<ScheduleVersion> versions = new ComboBox<>();
     private final ComboBox<String> filterType = new ComboBox<>();
@@ -59,6 +62,7 @@ public class ScheduleView extends BorderPane {
     public ScheduleView() { this(new ScheduleService()); }
     public ScheduleView(ScheduleService service) {
         this.service = service;
+        this.editable = UiAccess.can(Permission.EDIT_SCHEDULES);
         getStylesheets().add(getClass().getResource("/com/practice/aulaequilibrio/styles/aula.css").toExternalForm());
         getStyleClass().addAll("schedule-page", "module-page");
         disableProperty().bind(busy); setId("schedule-planner");
@@ -70,7 +74,8 @@ public class ScheduleView extends BorderPane {
         editorPane.setMinWidth(310);
         FlowPane actions = new FlowPane(7, 6, save, remove); actions.getStyleClass().add("schedule-actions");
         editorPane.setBottom(actions);
-        SplitPane workspace = new SplitPane(viewer, editorPane); workspace.setDividerPositions(0.69);
+        SplitPane workspace = editable ? new SplitPane(viewer, editorPane) : new SplitPane(viewer);
+        workspace.setDividerPositions(0.69);
         workspace.getStyleClass().add("module-split"); setCenter(workspace);
         message.setId("schedule-message"); message.setWrapText(true); message.getStyleClass().add("muted"); setBottom(message);
         versions.valueProperty().addListener((obs, before, after) -> { if (!applying) reload(selectedVersionId()); });
@@ -84,7 +89,7 @@ public class ScheduleView extends BorderPane {
         classroom.valueProperty().addListener((obs, before, after) -> { if (!applying) preview(); });
         startTime.textProperty().addListener((obs, before, after) -> { if (!applying) { proposeEnd(); updateRooms(); } });
         endTime.textProperty().addListener((obs, before, after) -> { if (!applying) updateRooms(); });
-        table.getSelectionModel().selectedItemProperty().addListener((obs, before, after) -> { if (!applying && after != null) edit(after); });
+        table.getSelectionModel().selectedItemProperty().addListener((obs, before, after) -> { if (!applying && after != null && editable) edit(after); });
         save.setOnAction(event -> saveSession()); remove.setOnAction(event -> deleteSession());
         day.setValue(DayOfWeek.MONDAY); preview();
     }
@@ -105,6 +110,7 @@ public class ScheduleView extends BorderPane {
         FlowPane filters = new FlowPane(8, 6, filterType, resource, search, weekends);
         summary.setWrapText(true); summary.getStyleClass().add("muted");
         VBox header = new VBox(9, label("Planificador semanal", "page-title"), versionBar, filters, summary);
+        if (!editable) versionBar.getChildren().removeIf(node -> node != versions && node instanceof Button button && !button.getText().equals("Actualizar"));
         header.getStyleClass().add("panel"); setTop(header);
     }
 
@@ -113,7 +119,9 @@ public class ScheduleView extends BorderPane {
         weekly.setToggleGroup(mode); list.setToggleGroup(mode); weekly.setSelected(true);
         weekly.setOnAction(event -> { weekly.setSelected(true); viewer.setCenter(weekScroll); });
         list.setOnAction(event -> { list.setSelected(true); viewer.setCenter(table); });
-        viewer.setTop(new VBox(8, new FlowPane(8, 6, weekly, list), wrapped("Universidad abierta de 07:00 a 21:00. Pulsa una hora para agregar o arrastra una clase para moverla.", "muted")));
+        viewer.setTop(new VBox(8, new FlowPane(8, 6, weekly, list), wrapped(editable
+                ? "Universidad abierta de 07:00 a 21:00. Pulsa una hora para agregar o arrastra una clase para moverla."
+                : "Consulta de horarios · 07:00 a 21:00. Filtra la semana y pulsa una clase para ver sus detalles.", "muted")));
         viewer.getStyleClass().add("schedule-viewer"); week.setId("schedule-week"); week.setHgap(5); week.setVgap(5);
         week.getColumnConstraints().add(new ColumnConstraints(65));
         for (int i = 0; i < 7; i++) { ColumnConstraints col = new ColumnConstraints(); col.setMinWidth(120); col.setHgrow(Priority.ALWAYS); week.getColumnConstraints().add(col); }
@@ -255,9 +263,9 @@ public class ScheduleView extends BorderPane {
                 item.setPrefHeight(Duration.between(entry.getStartTime(), entry.getEndTime()).toMinutes() * MINUTE_HEIGHT - 3);
                 item.setMinHeight(0); item.setMaxHeight(Region.USE_PREF_SIZE); dayPane.getChildren().add(item);
             }
-            dayPane.setOnMouseClicked(event -> newSession(DayOfWeek.of(targetDay), timeAt(dayPane.sceneToLocal(event.getSceneX(), event.getSceneY()).getY(), firstMinute)));
+            dayPane.setOnMouseClicked(event -> { if (editable) newSession(DayOfWeek.of(targetDay), timeAt(dayPane.sceneToLocal(event.getSceneX(), event.getSceneY()).getY(), firstMinute)); });
             dayPane.setOnDragOver(event -> {
-                var source = dragged(event.getDragboard());
+                var source = editable ? dragged(event.getDragboard()) : null;
                 if (source != null) {
                     LocalTime time = timeAt(dayPane.sceneToLocal(event.getSceneX(), event.getSceneY()).getY(), firstMinute);
                     event.acceptTransferModes(TransferMode.MOVE); dayPane.getStyleClass().removeAll("schedule-drop-ok", "schedule-drop-error");
@@ -267,7 +275,7 @@ public class ScheduleView extends BorderPane {
             });
             dayPane.setOnDragExited(event -> dayPane.getStyleClass().removeAll("schedule-drop-ok", "schedule-drop-error"));
             dayPane.setOnDragDropped(event -> {
-                var source = dragged(event.getDragboard());
+                var source = editable ? dragged(event.getDragboard()) : null;
                 LocalTime time = timeAt(dayPane.sceneToLocal(event.getSceneX(), event.getSceneY()).getY(), firstMinute);
                 boolean accepted = source != null && moveProblems(source, targetDay, time).isEmpty();
                 if (accepted) move(source, targetDay, time); else if (source != null) message.setText(String.join("\n", moveProblems(source, targetDay, time)));
@@ -303,10 +311,15 @@ public class ScheduleView extends BorderPane {
         }
         card.getStyleClass().addAll("schedule-card", "schedule-course-" + Math.floorMod(assignment.getGroup().getId(), 5));
         if (assignment.getId().equals(editingId)) card.getStyleClass().add("schedule-card-selected");
-        card.setOnAction(event -> edit(assignment)); card.setOnMouseClicked(event -> event.consume());
-        card.setOnDragDetected(event -> { ClipboardContent data = new ClipboardContent(); data.putString("session:" + selectedVersionId() + ":" + assignment.getId());
+        card.setOnAction(event -> {
+            if (editable) edit(assignment);
+            else Dialogs.info(this, "Detalle de la sesión", assignment.getSubject().getNombre() + "\n" + assignment.getGroup().getNombre()
+                    + " · " + assignment.getTeacher().getName() + "\n" + dayLabel(DayOfWeek.of(assignment.getDay())) + " "
+                    + format(assignment.getStartTime()) + "–" + format(assignment.getEndTime()) + "\nAula " + assignment.getClassroom().getCodigo());
+        }); card.setOnMouseClicked(event -> event.consume());
+        card.setOnDragDetected(event -> { if (!editable) return; ClipboardContent data = new ClipboardContent(); data.putString("session:" + selectedVersionId() + ":" + assignment.getId());
             card.startDragAndDrop(TransferMode.MOVE).setContent(data); event.consume(); });
-        Tooltip.install(card, new Tooltip("Pulsa para editar. Arrastra para mover la sesión a otra hora o día.")); return card;
+        Tooltip.install(card, new Tooltip(editable ? "Pulsa para editar. Arrastra para mover la sesión a otra hora o día." : "Pulsa para ver el detalle.")); return card;
     }
 
     private void edit(ScheduleAssignment assignment) {

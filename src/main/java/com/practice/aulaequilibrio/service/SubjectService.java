@@ -6,6 +6,7 @@ import com.practice.aulaequilibrio.util.ErrorMessages;
 import com.practice.aulaequilibrio.util.ValidationException;
 import com.practice.aulaequilibrio.util.Validations;
 import lombok.RequiredArgsConstructor;
+import com.practice.aulaequilibrio.model.Permission;
 
 import java.util.List;
 import java.util.Locale;
@@ -17,12 +18,16 @@ public class SubjectService {
     private static final int MAX_NOMBRE = 100;
 
     private final SubjectDAO dao;
+    private final AccessControl access;
+
+    public SubjectService(SubjectDAO dao) { this(dao, AccessControl.current()); }
 
     public SubjectService() {
-        this(new SubjectDAO());
+        this(new SubjectDAO(), AccessControl.current());
     }
 
     public List<Subject> listAll() {
+        access.require(Permission.READ_ACADEMIC);
         return dao.findAll();
     }
 
@@ -30,6 +35,7 @@ public class SubjectService {
      * Crea una asignatura nueva ({@code id == null}) o actualiza una existente.
      */
     public Subject save(Integer id, String codigo, String nombre, String sesionesRequeridas) {
+        access.require(Permission.EDIT_OFFER);
         String cleanCodigo = Validations.required(codigo, "código", MAX_CODIGO).toUpperCase(Locale.ROOT);
         String cleanNombre = Validations.required(nombre, "nombre de la asignatura", MAX_NOMBRE);
         int sesiones = Validations.positiveInteger(sesionesRequeridas, "número de sesiones requeridas");
@@ -55,6 +61,7 @@ public class SubjectService {
     }
 
     public void delete(Integer id) {
+        access.require(Permission.EDIT_OFFER);
         if (id == null) {
             throw new ValidationException("Seleccione una asignatura para eliminar.");
         }

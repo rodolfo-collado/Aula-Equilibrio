@@ -3,6 +3,8 @@ package com.practice.aulaequilibrio.controller;
 import com.practice.aulaequilibrio.model.*;
 import com.practice.aulaequilibrio.service.*;
 import com.practice.aulaequilibrio.util.Dialogs;
+import com.practice.aulaequilibrio.util.UiAccess;
+import com.practice.aulaequilibrio.model.Permission;
 import com.practice.aulaequilibrio.util.ErrorMessages;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -40,6 +42,7 @@ public class AcademicOfferController {
     private Set<Integer> careerSubjects = Set.of();
 
     @FXML private void initialize() {
+        UiAccess.apply(root, Permission.EDIT_OFFER);
         subjectCode.setCellValueFactory(c -> text(c.getValue().getCodigo()));
         subjectName.setCellValueFactory(c -> text(c.getValue().getNombre()));
         subjectDuration.setCellValueFactory(c -> text(hours(c.getValue()) + " h"));

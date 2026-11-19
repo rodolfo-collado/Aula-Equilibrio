@@ -519,3 +519,15 @@
 .schedule-page .combo-box:disabled { -fx-opacity: 1; -fx-background-color: #edf3f6; }
 .schedule-page .combo-box:disabled .list-cell { -fx-text-fill: #29465f; }
 .schedule-actions { -fx-background-color: white; -fx-padding: 10; -fx-border-color: #d5e0e9 transparent transparent transparent; }
+
+.login-page {
+    -fx-background-color: linear-gradient(to bottom right, #142e4b, #166b65);
+    -fx-padding: 24;
+}
+.login-card {
+    -fx-background-color: white;
+    -fx-background-radius: 15;
+    -fx-padding: 27;
+    -fx-effect: dropshadow(gaussian, #071a2b55, 24, 0.1, 0, 10);
+}
+.login-brand { -fx-text-fill: #126c63; -fx-font-weight: bold; -fx-font-size: 15; }

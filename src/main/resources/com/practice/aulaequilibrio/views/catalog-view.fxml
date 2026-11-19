@@ -10,9 +10,9 @@
         <VBox spacing="10" minWidth="290" styleClass="panel">
             <Label text="Docentes" styleClass="card-title"/>
             <FlowPane hgap="7" vgap="6">
-                <Button text="Nuevo docente" onAction="#newTeacher" styleClass="primary"/>
-                <Button fx:id="editTeacherButton" text="Editar" onAction="#editTeacher"/>
-                <Button fx:id="deleteTeacherButton" text="Eliminar docente" onAction="#deleteTeacher" styleClass="danger"/>
+                <Button text="Nuevo docente" onAction="#newTeacher" styleClass="primary,requires-edit"/>
+                <Button fx:id="editTeacherButton" text="Editar" onAction="#editTeacher" styleClass="requires-edit"/>
+                <Button fx:id="deleteTeacherButton" text="Eliminar docente" onAction="#deleteTeacher" styleClass="danger,requires-edit"/>
                 <Button text="Actualizar" onAction="#reload"/>
             </FlowPane>
             <HBox spacing="7" alignment="CENTER_LEFT">
@@ -46,16 +46,16 @@
                     <TableColumn fx:id="intervalValue" text="Horario" prefWidth="140"/>
                 </columns>
             </TableView>
-            <Label fx:id="intervalEditorTitle" text="Nuevo intervalo" styleClass="card-title"/>
-            <ComboBox fx:id="day" promptText="Día de la semana" maxWidth="Infinity"/>
-            <HBox spacing="7">
+            <Label fx:id="intervalEditorTitle" text="Nuevo intervalo" styleClass="card-title,requires-edit"/>
+            <ComboBox fx:id="day" styleClass="requires-edit" promptText="Día de la semana" maxWidth="Infinity"/>
+            <HBox spacing="7" styleClass="requires-edit">
                 <TextField fx:id="startTime" promptText="Inicio (HH:mm)" HBox.hgrow="ALWAYS"/>
                 <TextField fx:id="endTime" promptText="Fin (HH:mm)" HBox.hgrow="ALWAYS"/>
             </HBox>
             <FlowPane hgap="7" vgap="6">
-                <Button text="Nuevo intervalo" onAction="#newInterval"/>
-                <Button text="Guardar intervalo" onAction="#saveInterval" styleClass="primary"/>
-                <Button fx:id="deleteIntervalButton" text="Eliminar intervalo" onAction="#deleteInterval" styleClass="danger"/>
+                <Button text="Nuevo intervalo" onAction="#newInterval" styleClass="requires-edit"/>
+                <Button text="Guardar intervalo" onAction="#saveInterval" styleClass="primary,requires-edit"/>
+                <Button fx:id="deleteIntervalButton" text="Eliminar intervalo" onAction="#deleteInterval" styleClass="danger,requires-edit"/>
             </FlowPane>
         </VBox>
     </SplitPane>

@@ -31,6 +31,11 @@
                     <SeparatorMenuItem/>
                     <MenuItem text="Organizar en cascada" onAction="#arrangeWindows"/>
                     <SeparatorMenuItem/>
+                    <MenuItem fx:id="accountsMenu" text="Cuentas y permisos" onAction="#openAccounts"/>
+                    <MenuItem fx:id="auditMenu" text="Auditoría de cuentas" onAction="#openAudit"/>
+                    <MenuItem text="Cambiar mi contraseña" onAction="#changePassword"/>
+                    <MenuItem text="Cerrar sesión" onAction="#logout"/>
+                    <SeparatorMenuItem/>
                     <MenuItem text="Salir de Aula Equilibrio" onAction="#exitApplication"/>
                 </items>
             </MenuButton>
@@ -45,6 +50,7 @@
             <Button text="Aulas" accessibleText="Aulas" userData="classroom-view.fxml" onAction="#openCatalog"/>
             <Button text="Reportes" accessibleText="Reportes" userData="report-view.fxml" onAction="#openCatalog"/>
             <HBox fx:id="popupTasks" spacing="6"/>
+            <Label fx:id="sessionLabel" styleClass="muted"/>
         </ToolBar>
     </top>
     <fx:define>

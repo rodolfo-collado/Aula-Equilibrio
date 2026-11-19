@@ -4,6 +4,7 @@ import com.practice.aulaequilibrio.dao.DashboardDAO;
 import com.practice.aulaequilibrio.model.ClassroomStatus;
 import com.practice.aulaequilibrio.model.DashboardData.*;
 import lombok.RequiredArgsConstructor;
+import com.practice.aulaequilibrio.model.Permission;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,10 +14,14 @@ import java.time.format.TextStyle;
 @RequiredArgsConstructor
 public class DashboardService {
     private final DashboardDAO dao;
+    private final AccessControl access;
 
-    public DashboardService() { this(new DashboardDAO()); }
+    public DashboardService(DashboardDAO dao) { this(dao, AccessControl.current()); }
+
+    public DashboardService() { this(new DashboardDAO(), AccessControl.current()); }
 
     public Snapshot load(Integer versionId) {
+        access.require(Permission.READ_ACADEMIC);
         Facts facts = dao.load(versionId);
         var timed = facts.assignments().stream().filter(a -> a.start() != null && a.end() != null && a.start().isBefore(a.end())).toList();
         long undefinedTimes = facts.assignments().size() - timed.size();

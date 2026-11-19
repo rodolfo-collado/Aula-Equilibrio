@@ -4,6 +4,8 @@ import com.practice.aulaequilibrio.model.Career;
 import com.practice.aulaequilibrio.model.FacultySummary;
 import com.practice.aulaequilibrio.service.AcademicStructureService;
 import com.practice.aulaequilibrio.util.Dialogs;
+import com.practice.aulaequilibrio.util.UiAccess;
+import com.practice.aulaequilibrio.model.Permission;
 import com.practice.aulaequilibrio.util.ErrorMessages;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -24,6 +26,7 @@ public class AcademicStructureController {
     private final AcademicStructureService service = new AcademicStructureService();
 
     @FXML private void initialize() {
+        UiAccess.apply(root, Permission.EDIT_STRUCTURE);
         facultyCode.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().code()));
         facultyName.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().name()));
         facultyState.setCellValueFactory(c -> new ReadOnlyStringWrapper(state(c.getValue().active())));

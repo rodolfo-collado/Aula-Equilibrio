@@ -21,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class CatalogScreenTest {
+    @org.junit.jupiter.api.AfterEach void clearLoginContext() { com.practice.aulaequilibrio.util.SessionContext.clear(); }
+
     private static final String CATALOG = "Docentes y disponibilidad";
     private static final String TEACHER_FORM = "Formulario de docente";
     private MdiDesktop root;
@@ -33,7 +35,7 @@ class CatalogScreenTest {
             var dao = new CatalogDAO(factory);
             Stage stage = fx(() -> {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/practice/aulaequilibrio/views/catalog-view.fxml"));
-                loader.setControllerFactory(type -> new CatalogController(new CatalogService(dao)));
+                loader.setControllerFactory(type -> new CatalogController(new CatalogService(dao, com.practice.aulaequilibrio.TestUsers.admin(factory))));
                 Parent catalog = loader.load();
                 root = new MdiDesktop();
                 loader.<CatalogController>getController().attachDesktop(root, CATALOG);

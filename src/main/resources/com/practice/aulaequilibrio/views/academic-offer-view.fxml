@@ -9,9 +9,9 @@
         <VBox spacing="10" minWidth="310" styleClass="panel">
             <Label text="Asignaturas" styleClass="card-title"/>
             <FlowPane hgap="7" vgap="6">
-                <Button text="Nueva asignatura" onAction="#addSubject" styleClass="primary"/>
-                <Button fx:id="editSubject" text="Editar" onAction="#editSubject"/>
-                <Button fx:id="deleteSubject" text="Eliminar" onAction="#deleteSubject" styleClass="danger"/>
+                <Button text="Nueva asignatura" onAction="#addSubject" styleClass="primary,requires-edit"/>
+                <Button fx:id="editSubject" text="Editar" onAction="#editSubject" styleClass="requires-edit"/>
+                <Button fx:id="deleteSubject" text="Eliminar" onAction="#deleteSubject" styleClass="danger,requires-edit"/>
                 <Button text="Actualizar" onAction="#reload"/>
             </FlowPane>
             <TextField fx:id="search" promptText="Buscar por código o nombre"/>
@@ -30,9 +30,9 @@
             <Label text="Grupos de la asignatura" styleClass="card-title"/>
             <Label fx:id="groupTitle" text="Selecciona una asignatura" styleClass="muted" wrapText="true"/>
             <FlowPane hgap="7" vgap="6">
-                <Button text="Nuevo grupo" onAction="#addGroup" styleClass="primary"/>
-                <Button fx:id="editGroup" text="Editar" onAction="#editGroup"/>
-                <Button fx:id="deleteGroup" text="Eliminar" onAction="#deleteGroup" styleClass="danger"/>
+                <Button text="Nuevo grupo" onAction="#addGroup" styleClass="primary,requires-edit"/>
+                <Button fx:id="editGroup" text="Editar" onAction="#editGroup" styleClass="requires-edit"/>
+                <Button fx:id="deleteGroup" text="Eliminar" onAction="#deleteGroup" styleClass="danger,requires-edit"/>
             </FlowPane>
             <TableView fx:id="groups" VBox.vgrow="ALWAYS">
                 <placeholder><Label text="No hay grupos registrados."/></placeholder>

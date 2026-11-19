@@ -28,8 +28,9 @@ class ScheduleReportServiceTest {
     }
 
     @Test void withoutVersionThereAreNoSessionsAndDaysHaveNames() {
-        assertTrue(new ScheduleReportService(null).sessions(null).isEmpty());
-        assertTrue(new ScheduleReportService(null).teacherLoad(null).isEmpty());
+        AccessControl anonymous = new AccessControl(null, new com.practice.aulaequilibrio.dao.AuthenticationDAO());
+        assertThrows(com.practice.aulaequilibrio.util.AuthorizationException.class, () -> new ScheduleReportService(null, anonymous).sessions(null));
+        assertThrows(com.practice.aulaequilibrio.util.AuthorizationException.class, () -> new ScheduleReportService(null, anonymous).teacherLoad(null));
         assertEquals("Miércoles", ScheduleReportService.dayName(3));
         assertEquals("Día 9", ScheduleReportService.dayName(9));
     }

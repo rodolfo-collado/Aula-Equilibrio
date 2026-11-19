@@ -4,6 +4,8 @@ import com.practice.aulaequilibrio.service.CatalogService;
 import com.practice.aulaequilibrio.model.Availability;
 import com.practice.aulaequilibrio.model.Teacher;
 import com.practice.aulaequilibrio.util.Dialogs;
+import com.practice.aulaequilibrio.util.UiAccess;
+import com.practice.aulaequilibrio.model.Permission;
 import com.practice.aulaequilibrio.view.mdi.MdiDesktop;
 import lombok.RequiredArgsConstructor;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -71,6 +73,7 @@ public class CatalogController {
 
     @FXML
     private void initialize() {
+        UiAccess.apply(catalogs, Permission.EDIT_TEACHERS);
         teacherName.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getName()));
         teacherEmail.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getEmail()));
         intervalDay.setCellValueFactory(cell -> new ReadOnlyStringWrapper(DAYS.get(cell.getValue().getDay() - 1)));
@@ -359,7 +362,7 @@ public class CatalogController {
         task.setOnFailed(event -> {
             busy.set(false);
             Throwable failure = task.getException();
-            String text = failure instanceof IllegalArgumentException ? failure.getMessage()
+            String text = (failure instanceof IllegalArgumentException || failure instanceof com.practice.aulaequilibrio.util.ValidationException) ? failure.getMessage()
                     : failure instanceof ConstraintViolationException ? "Ya existe un registro con esos datos."
                     : "No se pudo completar la operación. Revisa la conexión con PostgreSQL.";
             status.setText(text);

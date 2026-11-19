@@ -4,6 +4,10 @@ import com.practice.aulaequilibrio.util.Dialogs;
 import com.practice.aulaequilibrio.model.DashboardData.Destination;
 import com.practice.aulaequilibrio.view.ScheduleView;
 import com.practice.aulaequilibrio.view.mdi.MdiDesktop;
+import com.practice.aulaequilibrio.view.AccountManagementView;
+import com.practice.aulaequilibrio.model.Permission;
+import com.practice.aulaequilibrio.util.SessionContext;
+import com.practice.aulaequilibrio.util.UiAccess;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
@@ -14,6 +18,8 @@ import javafx.scene.Parent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 
 import java.io.IOException;
@@ -34,9 +40,18 @@ public class HomeController {
     private ToolBar taskbar;
     @FXML
     private HBox popupTasks;
+    @FXML private Label sessionLabel;
+    @FXML private MenuItem accountsMenu, auditMenu;
+    private Runnable onLogout = () -> {}, onChangePassword = () -> {};
+    public void setOnLogout(Runnable callback) { onLogout = callback; }
+    public void setOnChangePassword(Runnable callback) { onChangePassword = callback; }
 
     @FXML
     private void initialize() {
+        var identity = SessionContext.current();
+        sessionLabel.setText(identity == null ? "Sin sesión" : identity.displayName() + " · " + identity.role());
+        accountsMenu.setVisible(UiAccess.can(Permission.MANAGE_ACCOUNTS));
+        auditMenu.setVisible(UiAccess.can(Permission.VIEW_AUDIT));
         taskbar.disableProperty().bind(desktop.dialogShowingProperty());
         homeController.setNavigator(this::openDestination);
         desktop.activeTitleProperty().addListener((observable, previous, current) -> {
@@ -83,6 +98,18 @@ public class HomeController {
     @FXML
     private void arrangeWindows() {
         desktop.cascade();
+    }
+
+    @FXML private void logout() { onLogout.run(); }
+    @FXML private void changePassword() { onChangePassword.run(); }
+    @FXML private void openAccounts() { openAccountWindow(true); }
+    @FXML private void openAudit() { openAccountWindow(false); }
+    private void openAccountWindow(boolean management) {
+        String title = management ? "Cuentas y permisos" : "Auditoría de cuentas";
+        if (!UiAccess.can(management ? Permission.MANAGE_ACCOUNTS : Permission.VIEW_AUDIT)) return;
+        if (desktop.activate(title)) return;
+        AccountManagementView view = new AccountManagementView(management);
+        desktop.open(title, view, 1100, 700, true); view.load();
     }
 
     @FXML

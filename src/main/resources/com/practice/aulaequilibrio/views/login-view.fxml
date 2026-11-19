@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<StackPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.practice.aulaequilibrio.controller.LoginController" styleClass="login-page">
+    <VBox spacing="12" maxWidth="460" maxHeight="-Infinity" styleClass="login-card">
+        <Label text="AE · AULA EQUILIBRIO" styleClass="login-brand"/>
+        <Label fx:id="title" text="Preparando acceso…" wrapText="true" styleClass="page-title"/>
+        <Label fx:id="subtitle" wrapText="true" styleClass="muted"/>
+        <Label text="Usuario"/>
+        <TextField fx:id="username" promptText="Tu usuario" onAction="#login"/>
+        <Label text="Contraseña"/>
+        <PasswordField fx:id="password" promptText="Tu contraseña" onAction="#login"/>
+        <VBox fx:id="setupFields" spacing="9" visible="false">
+            <Label text="Confirmar contraseña"/>
+            <PasswordField fx:id="confirm" promptText="Repite la contraseña"/>
+            <Label text="Nombre completo"/>
+            <TextField fx:id="displayName" promptText="Nombre del administrador"/>
+            <Label text="Correo (opcional)"/>
+            <TextField fx:id="email" promptText="correo@institucion.edu"/>
+        </VBox>
+        <Label fx:id="feedback" wrapText="true" styleClass="field-error"/>
+        <Button fx:id="submit" text="Iniciar sesión" onAction="#login" defaultButton="true" maxWidth="Infinity" styleClass="primary"/>
+        <Label text="Acceso institucional · cada cuenta dispone de permisos según su rol." wrapText="true" styleClass="muted"/>
+    </VBox>
+</StackPane>

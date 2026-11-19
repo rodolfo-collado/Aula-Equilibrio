@@ -8,6 +8,7 @@ import com.practice.aulaequilibrio.model.ScheduleReportData.Scope;
 import com.practice.aulaequilibrio.model.ScheduleReportData.SessionRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.TeacherLoadRow;
 import com.practice.aulaequilibrio.util.TimeIntervals;
+import com.practice.aulaequilibrio.model.Permission;
 
 import java.time.Duration;
 import java.util.Comparator;
@@ -20,23 +21,29 @@ public class ScheduleReportService {
     private static final List<String> DAYS = List.of("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo");
 
     private final ScheduleReportDAO dao;
+    private final AccessControl access;
 
     public ScheduleReportService() { this(new ScheduleReportDAO()); }
-    public ScheduleReportService(ScheduleReportDAO dao) { this.dao = dao; }
+    public ScheduleReportService(ScheduleReportDAO dao) { this(dao, AccessControl.current()); }
+    public ScheduleReportService(ScheduleReportDAO dao, AccessControl access) { this.dao = dao; this.access = access; }
 
     public List<VersionOption> versions() {
+        access.require(Permission.READ_ACADEMIC);
         return dao.versions();
     }
 
     public List<SessionRow> sessions(Integer versionId) {
+        access.require(Permission.READ_ACADEMIC);
         return versionId == null ? List.of() : dao.sessions(versionId);
     }
 
     public List<TeacherLoadRow> teacherLoad(Integer versionId) {
+        access.require(Permission.READ_ACADEMIC);
         return versionId == null ? List.of() : TeacherLoadCalculator.rows(dao.teacherLoad(versionId));
     }
 
     public List<RoomOccupancyRow> roomOccupancy(Integer versionId, Integer day) {
+        access.require(Permission.READ_ACADEMIC);
         return versionId == null ? List.of() : dao.roomOccupancy(versionId, day);
     }
 

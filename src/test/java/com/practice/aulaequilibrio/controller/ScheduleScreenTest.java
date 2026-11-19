@@ -20,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class ScheduleScreenTest {
+    @org.junit.jupiter.api.AfterEach void clearLoginContext() { com.practice.aulaequilibrio.util.SessionContext.clear(); }
+
     private ScheduleView view;
     private MdiDesktop desktop;
     @Test void weeklyEditorAutofillsChecksConflictsMovesFiltersAndCopies() throws Exception {
@@ -30,7 +32,7 @@ class ScheduleScreenTest {
             var dao = new ScheduleDAO(factory);
             int version = dao.saveVersion(null, "Horario final");
             Stage stage = fx(() -> {
-                desktop = new MdiDesktop(); view = new ScheduleView(new ScheduleService(dao));
+                desktop = new MdiDesktop(); view = new ScheduleView(new ScheduleService(dao, com.practice.aulaequilibrio.TestUsers.admin(factory)));
                 Stage window = new Stage(); window.setScene(new Scene(desktop, 1250, 850)); window.setMaximized(true); window.show();
                 desktop.open("Horarios", view, 1100, 720, true); view.load(); return window;
             });

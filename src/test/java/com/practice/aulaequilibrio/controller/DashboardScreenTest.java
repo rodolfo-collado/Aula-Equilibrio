@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class DashboardScreenTest {
+    @org.junit.jupiter.api.AfterEach void clearLoginContext() { com.practice.aulaequilibrio.util.SessionContext.clear(); }
+
     @Test void homepageLoadsSwitchesVersionRefreshesAndRecoversFromConnectionFailure() throws Exception {
         assumeTrue(System.getenv("DISPLAY") != null, "La prueba visual requiere un servidor gráfico.");
         try { Platform.startup(() -> Platform.setImplicitExit(false)); }
@@ -48,7 +50,7 @@ class DashboardScreenTest {
                     if (fail.get()) throw new IllegalStateException("Conexión de prueba interrumpida");
                     return super.load(version);
                 }
-            });
+            }, com.practice.aulaequilibrio.TestUsers.admin(factory));
             AtomicReference<DashboardController> controller = new AtomicReference<>();
             Parent root = fx(() -> {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/practice/aulaequilibrio/views/home-view.fxml"));

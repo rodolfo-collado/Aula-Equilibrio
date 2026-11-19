@@ -6,6 +6,7 @@ import com.practice.aulaequilibrio.util.ErrorMessages;
 import com.practice.aulaequilibrio.util.ValidationException;
 import com.practice.aulaequilibrio.util.Validations;
 import lombok.RequiredArgsConstructor;
+import com.practice.aulaequilibrio.model.Permission;
 
 import java.util.List;
 
@@ -15,12 +16,16 @@ public class GroupeService {
     private static final int MAX_NOMBRE = 40;
 
     private final GroupeDAO dao;
+    private final AccessControl access;
+
+    public GroupeService(GroupeDAO dao) { this(dao, AccessControl.current()); }
 
     public GroupeService() {
-        this(new GroupeDAO());
+        this(new GroupeDAO(), AccessControl.current());
     }
 
     public List<Groupe> listAll() {
+        access.require(Permission.READ_ACADEMIC);
         return dao.findAll();
     }
 
@@ -28,6 +33,7 @@ public class GroupeService {
      * Crea un grupo nuevo ({@code id == null}) o actualiza uno existente.
      */
     public Groupe save(Integer id, String nombre, String cantidadEstudiantes) {
+        access.require(Permission.EDIT_OFFER);
         String cleanNombre = Validations.required(nombre, "nombre del grupo", MAX_NOMBRE);
         int cantidad = Validations.positiveInteger(cantidadEstudiantes, "cantidad de estudiantes");
 
@@ -51,6 +57,7 @@ public class GroupeService {
     }
 
     public void delete(Integer id) {
+        access.require(Permission.EDIT_OFFER);
         if (id == null) {
             throw new ValidationException("Seleccione un grupo para eliminar.");
         }

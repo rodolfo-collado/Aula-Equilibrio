@@ -13,9 +13,9 @@
                     <Label text="Aulas" styleClass="card-title"/>
                     <Label fx:id="classroomScope" text="Todos los tipos" styleClass="muted"/>
                     <FlowPane hgap="7" vgap="6">
-                        <Button text="Nueva aula" onAction="#addClassroom" styleClass="primary"/>
-                        <Button fx:id="editClassroomButton" text="Editar" onAction="#editSelectedClassroom"/>
-                        <Button fx:id="deleteClassroomButton" text="Eliminar aula" onAction="#deleteClassroom" styleClass="danger"/>
+                        <Button text="Nueva aula" onAction="#addClassroom" styleClass="primary,requires-edit"/>
+                        <Button fx:id="editClassroomButton" text="Editar" onAction="#editSelectedClassroom" styleClass="requires-edit"/>
+                        <Button fx:id="deleteClassroomButton" text="Eliminar aula" onAction="#deleteClassroom" styleClass="danger,requires-edit"/>
                         <Button text="Actualizar" onAction="#refresh"/>
                     </FlowPane>
                     <FlowPane hgap="7" vgap="6">
@@ -36,9 +36,9 @@
                     <Label text="Tipos de aula" styleClass="card-title"/>
                     <Label text="Selecciona un tipo para filtrar las aulas." wrapText="true" styleClass="muted"/>
                     <FlowPane hgap="7" vgap="6">
-                        <Button text="Nuevo tipo" onAction="#addType" styleClass="primary"/>
-                        <Button fx:id="editTypeButton" text="Editar" onAction="#editSelectedType"/>
-                        <Button fx:id="deleteTypeButton" text="Eliminar tipo" onAction="#deleteType" styleClass="danger"/>
+                        <Button text="Nuevo tipo" onAction="#addType" styleClass="primary,requires-edit"/>
+                        <Button fx:id="editTypeButton" text="Editar" onAction="#editSelectedType" styleClass="requires-edit"/>
+                        <Button fx:id="deleteTypeButton" text="Eliminar tipo" onAction="#deleteType" styleClass="danger,requires-edit"/>
                         <Button fx:id="showAllButton" text="Todos los tipos" onAction="#showAllClassrooms"/>
                     </FlowPane>
                     <TableView fx:id="typeTable" VBox.vgrow="ALWAYS">

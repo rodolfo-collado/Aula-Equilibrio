@@ -10,6 +10,8 @@ import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DashboardDAOTest {
+    @org.junit.jupiter.api.AfterEach void clearLoginContext() { com.practice.aulaequilibrio.util.SessionContext.clear(); }
+
     private SessionFactory factory;
     private DashboardService service;
 
@@ -24,7 +26,7 @@ public class DashboardDAOTest {
 
     @BeforeEach void setup() {
         factory = createFactory();
-        service = new DashboardService(new DashboardDAO(factory));
+        service = new DashboardService(new DashboardDAO(factory), com.practice.aulaequilibrio.TestUsers.admin(factory));
     }
     @AfterEach void close() { factory.close(); }
 

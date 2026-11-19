@@ -1,0 +1,6 @@
+package com.practice.aulaequilibrio.model;
+
+public enum Permission {
+    READ_ACADEMIC, EDIT_STRUCTURE, EDIT_TEACHERS, EDIT_OFFER, EDIT_CLASSROOMS, EDIT_SCHEDULES,
+    MANAGE_ACCOUNTS, VIEW_AUDIT
+}

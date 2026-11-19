@@ -3,6 +3,8 @@ package com.practice.aulaequilibrio.controller;
 import com.practice.aulaequilibrio.model.*;
 import com.practice.aulaequilibrio.service.ClassroomService;
 import com.practice.aulaequilibrio.util.Dialogs;
+import com.practice.aulaequilibrio.util.UiAccess;
+import com.practice.aulaequilibrio.model.Permission;
 import com.practice.aulaequilibrio.util.Validations;
 import com.practice.aulaequilibrio.util.ValidationException;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -43,6 +45,7 @@ public class ClassroomController {
     private record Catalogs(List<ClassroomType> types, List<Classroom> rooms) {}
 
     @FXML private void initialize() {
+        UiAccess.apply(root, Permission.EDIT_CLASSROOMS);
         codeColumn.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getCodigo()));
         capacityColumn.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getCapacidad().toString()));
         classroomTypeColumn.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getType().getName()));
