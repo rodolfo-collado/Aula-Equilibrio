@@ -56,6 +56,12 @@ Las contraseñas de 12–128 caracteres se almacenan como **PBKDF2-HMAC-SHA256, 
 
 Las nuevas tablas son `user_role`, `user_account`, `login_session` y `account_audit`. La actualización es aditiva y no reemplaza los datos académicos existentes.
 
+![Configuración del primer administrador al iniciar una base sin cuentas](docs/capturas/acceso.png)
+
+![Panel de administración con cuentas, roles, estado y filtros](docs/capturas/cuentas.png)
+
+![Auditoría de creación de cuentas y accesos dentro del escritorio MDI](docs/capturas/auditoria-cuentas.png)
+
 ## Ejecutar las pruebas
 
 ```bash
