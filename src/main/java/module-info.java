@@ -12,6 +12,8 @@ module com.practice.aulaequilibrio {
     requires static lombok;
     requires net.sf.jasperreports.core;
     requires net.sf.jasperreports.pdf;
+    requires net.sf.jasperreports.fonts;
+    requires com.github.librepdf.openpdf;
 
     opens com.practice.aulaequilibrio.model to org.hibernate.orm.core;
     opens com.practice.aulaequilibrio.controller to javafx.fxml;

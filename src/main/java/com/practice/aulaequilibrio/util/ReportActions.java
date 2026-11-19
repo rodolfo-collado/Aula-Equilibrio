@@ -8,8 +8,10 @@ import javafx.stage.FileChooser;
 
 import java.awt.Desktop;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 
@@ -30,8 +32,15 @@ public final class ReportActions {
         Task<Void> task = new Task<>() {
             @Override protected Void call() throws Exception {
                 var print = ReportEngine.fill(design, parameters, rows);
-                try (OutputStream output = new FileOutputStream(file)) {
-                    ReportEngine.export(print, format, output);
+                Path target = file.toPath().toAbsolutePath();
+                Path temporary = Files.createTempFile(target.getParent(), ".aula-reporte-", ".tmp");
+                try {
+                    try (var output = Files.newOutputStream(temporary)) {
+                        ReportEngine.export(print, format, output);
+                    }
+                    Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+                } finally {
+                    Files.deleteIfExists(temporary);
                 }
                 return null;
             }
@@ -43,8 +52,12 @@ public final class ReportActions {
         });
         task.setOnFailed(event -> {
             owner.setDisable(false);
-            LOGGER.log(System.Logger.Level.ERROR, "No se pudo generar " + design, task.getException());
-            Dialogs.error(owner, "No se pudo generar el reporte", task.getException());
+            Throwable failure = task.getException();
+            LOGGER.log(System.Logger.Level.ERROR, "No se pudo generar " + design, failure);
+            String message = failure instanceof IOException
+                    ? "No se pudo guardar el archivo. Comprueba los permisos de la carpeta y si el archivo está abierto."
+                    : "No se pudo preparar o exportar el documento. Consulta la consola para ver el detalle.";
+            Dialogs.error(owner, "No se pudo generar el reporte", message);
         });
         Thread worker = new Thread(task, "reporte-jasper");
         worker.setDaemon(true);
