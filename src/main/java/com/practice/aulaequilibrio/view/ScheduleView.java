@@ -464,7 +464,12 @@ public class ScheduleView extends BorderPane {
         task.setOnSucceeded(event -> { busy.set(false); onSuccess.accept(task.getValue()); }); task.setOnFailed(event -> { busy.set(false); onError.accept(task.getException()); });
         Thread worker = new Thread(task, "horarios-hibernate"); worker.setDaemon(true); worker.start();
     }
-    private void showError(Throwable exception) { message.setText(errorMessage(exception)); }
+    private void showError(Throwable exception) {
+        System.getLogger(ScheduleView.class.getName())
+                .log(System.Logger.Level.ERROR,
+                        "Error al guardar o cargar el horario", exception);
+        message.setText(errorMessage(exception));
+    }
     private static String errorMessage(Throwable exception) {
         for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
             if (cause instanceof IllegalArgumentException || cause instanceof ValidationException) return cause.getMessage();
