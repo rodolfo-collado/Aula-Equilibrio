@@ -13,9 +13,11 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalTime;
+import java.util.Optional;
 import java.util.concurrent.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -51,6 +53,7 @@ class ReportScreenTest {
                         ? new ScheduleReportController(service)
                         : type == TeacherLoadReportController.class ? new TeacherLoadReportController(service)
                         : type == RoomOccupancyReportController.class ? new RoomOccupancyReportController(service)
+                        : type == GroupCoverageReportController.class ? new GroupCoverageReportController(service)
                         : construct(type));
                 Parent view = loader.load();
                 Stage stage = new Stage(); stage.setScene(new Scene(view, 1000, 660)); stage.show();
@@ -68,6 +71,15 @@ class ReportScreenTest {
             });
             assertEquals(1, fx(() -> sessions.getItems().size()));
             assertFalse(fx(() -> root.lookup("#pdfButton").isDisabled()));
+            assertFalse(fx(() -> root.lookup("#emailButton").isDisabled()));
+            fx(() -> { ((Button) root.lookup("#previewButton")).fire(); return null; });
+            waitFor(() -> previewWindow(root).stream()
+                    .flatMap(window -> window.getScene().getRoot().lookupAll(".label").stream())
+                    .anyMatch(node -> node instanceof Label label && label.getText().startsWith("Página 1 de")));
+            fx(() -> {
+                previewWindow(root).orElseThrow().hide();
+                return null;
+            });
 
             TableView<?> teachers = (TableView<?>) root.lookup("#teachers");
             waitFor(() -> teachers.getItems().size() == 2);
@@ -92,8 +104,29 @@ class ReportScreenTest {
             assertEquals(60, fx(() -> rooms.getItems().getFirst().occupiedMinutes()));
             assertFalse(fx(() -> occupancy.lookup("#pdfButton").isDisabled()));
             assertFalse(fx(() -> occupancy.lookup("#excelButton").isDisabled()));
+            Parent coverage = fx(() -> {
+                TabPane tabs = (TabPane) root.lookup("#reports");
+                var tab = tabs.getTabs().stream().filter(t -> "Cobertura por grupo".equals(t.getText()))
+                        .findFirst().orElseThrow();
+                tabs.getSelectionModel().select(tab);
+                return (Parent) tab.getContent();
+            });
+            @SuppressWarnings("unchecked")
+            TableView<com.practice.aulaequilibrio.model.ScheduleReportData.GroupCoverageRow> groups =
+                    fx(() -> (TableView<com.practice.aulaequilibrio.model.ScheduleReportData.GroupCoverageRow>) coverage.lookup("#groups"));
+            waitFor(() -> groups.getItems().size() == 2);
+            assertEquals(1L, fx(() -> groups.getItems().getFirst().pending()));
+            assertFalse(fx(() -> coverage.lookup("#previewButton").isDisabled()));
             fx(() -> { root.getScene().getWindow().hide(); return null; });
         }
+    }
+
+    private static Optional<Window> previewWindow(Parent owner) {
+        return Window.getWindows().stream()
+                .filter(window -> window instanceof Stage stage
+                        && stage.getOwner() == owner.getScene().getWindow()
+                        && stage.getTitle() != null && stage.getTitle().startsWith("Vista previa"))
+                .findFirst();
     }
 
     private static Groupe group(Subject subject, Teacher teacher, String code) {

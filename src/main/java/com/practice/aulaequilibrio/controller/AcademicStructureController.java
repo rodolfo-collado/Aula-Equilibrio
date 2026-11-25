@@ -47,6 +47,15 @@ public class AcademicStructureController {
         return active ? "Activa" : "Inactiva";
     }
 
+    @FXML private void refreshFaculties() {
+        FacultySummary faculty = faculties.getSelectionModel().getSelectedItem();
+        reload(faculty == null ? null : faculty.id());
+    }
+
+    @FXML private void refreshCareers() {
+        loadCareers(faculties.getSelectionModel().getSelectedItem());
+    }
+
     private void reload(Long facultyId) {
         try {
             faculties.getItems().setAll(service.listFaculties());

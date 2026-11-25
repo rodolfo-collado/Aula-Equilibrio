@@ -69,6 +69,19 @@ class DashboardScreenTest {
             });
             try {
                 idle(root);
+                fx(() -> {
+                    var dashboard = (ScrollPane) root.lookup("#dashboard");
+                    var charts = (javafx.scene.layout.GridPane) dashboard.getContent().lookup("#piePanels");
+                    for (double width : new double[]{1200, 1511.25, 1859.5}) {
+                        charts.resize(width, charts.prefHeight(width));
+                        charts.layout();
+                        var leftChart = charts.getChildren().get(0).getBoundsInParent();
+                        var rightChart = charts.getChildren().get(1).getBoundsInParent();
+                        assertEquals(leftChart.getMinY(), rightChart.getMinY(), .1);
+                        assertTrue(rightChart.getMinX() >= leftChart.getMaxX());
+                    }
+                    return null;
+                });
                 assertEquals("1", fx(() -> label(root, "subjectCount").getText()));
                 assertEquals("0%", fx(() -> label(root, "coverageCount").getText()));
                 assertTrue(fx(() -> ((MdiDesktop)root.lookup("#desktop")).isOpen("Dashboard")));

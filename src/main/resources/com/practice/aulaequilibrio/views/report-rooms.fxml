@@ -12,6 +12,7 @@
         <ComboBox fx:id="version" promptText="Versión de horario" prefWidth="240"/>
         <ComboBox fx:id="day" accessibleText="Periodo de ocupación" prefWidth="170"/>
         <Button fx:id="refreshButton" text="Actualizar" onAction="#refresh"/>
+        <Button fx:id="previewButton" text="Vista previa" onAction="#preview"/>
         <Button fx:id="pdfButton" text="Exportar PDF" onAction="#exportPdf" styleClass="primary"/>
         <Button fx:id="excelButton" text="Exportar Excel" onAction="#exportExcel"/>
     </FlowPane>

@@ -3,6 +3,10 @@ module com.practice.aulaequilibrio {
     requires javafx.fxml;
 
     requires java.sql;
+    requires java.net.http;
+    requires jdk.httpserver;
+    requires com.fasterxml.jackson.databind;
+    requires org.apache.pdfbox;
     requires java.naming;
     requires java.desktop;
     requires jakarta.persistence;

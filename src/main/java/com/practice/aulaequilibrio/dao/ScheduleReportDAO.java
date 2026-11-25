@@ -2,6 +2,8 @@ package com.practice.aulaequilibrio.dao;
 
 import com.practice.aulaequilibrio.config.HibernateUtil;
 import com.practice.aulaequilibrio.model.DashboardData.VersionOption;
+import com.practice.aulaequilibrio.model.ScheduleVersion;
+import com.practice.aulaequilibrio.model.ScheduleReportData.GroupCoverageRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.Interval;
 import com.practice.aulaequilibrio.model.ScheduleReportData.RoomOccupancyRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.SessionRow;
@@ -33,6 +35,27 @@ public class ScheduleReportDAO {
                 where a.version.id = :version and a.startTime is not null and a.endTime is not null
                 order by a.day, a.startTime, c.codigo
                 """, SessionRow.class).setParameter("version", versionId).getResultList());
+    }
+
+    public List<GroupCoverageRow> groupCoverage(int versionId) {
+        return factory.get().fromTransaction(session -> session.createSelectionQuery("""
+                select g.nombre, s.nombre, s.sesionesRequeridas, count(a.id)
+                from Groupe g join g.subject s
+                left join ScheduleAssignment a on a.group.id = g.id and a.subject.id = s.id
+                    and a.version.id = :version and a.startTime is not null and a.endTime > a.startTime
+                group by g.id, g.nombre, s.nombre, s.sesionesRequeridas
+                order by g.nombre, g.id
+                """, GroupCoverageRow.class).setParameter("version", versionId).getResultList());
+    }
+
+    public boolean versionExists(int id) {
+        return factory.get().fromTransaction(session -> session.find(ScheduleVersion.class, id) != null);
+    }
+
+    public String teacherEmail(int teacherId) {
+        return factory.get().fromTransaction(session -> session.createSelectionQuery(
+                "select t.email from Teacher t where t.id = :id", String.class)
+                .setParameter("id", teacherId).uniqueResult());
     }
 
     public List<RoomOccupancyRow> roomOccupancy(int versionId, Integer day) {

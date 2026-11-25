@@ -12,6 +12,7 @@
                 <Button text="Agregar" onAction="#addFaculty" styleClass="primary,requires-edit"/>
                 <Button fx:id="editFaculty" text="Editar" onAction="#editFaculty" styleClass="requires-edit"/>
                 <Button fx:id="deleteFaculty" text="Eliminar" onAction="#deleteFaculty" styleClass="danger,requires-edit"/>
+                <Button text="Actualizar" onAction="#refreshFaculties"/>
             </FlowPane>
             <TableView fx:id="faculties" VBox.vgrow="ALWAYS">
                 <placeholder><Label text="No hay facultades registradas."/></placeholder>
@@ -28,6 +29,7 @@
                 <Button text="Agregar" onAction="#addCareer" styleClass="primary,requires-edit"/>
                 <Button fx:id="editCareer" text="Editar" onAction="#editCareer" styleClass="requires-edit"/>
                 <Button fx:id="deleteCareer" text="Eliminar" onAction="#deleteCareer" styleClass="danger,requires-edit"/>
+                <Button text="Actualizar" onAction="#refreshCareers"/>
             </FlowPane>
             <TableView fx:id="careers" VBox.vgrow="ALWAYS">
                 <placeholder><Label text="Selecciona una facultad para ver sus carreras."/></placeholder>

@@ -17,6 +17,9 @@
                 <Tab text="Ocupación de aulas">
                     <fx:include source="report-rooms.fxml"/>
                 </Tab>
+                <Tab text="Cobertura por grupo">
+                    <fx:include source="report-group-coverage.fxml"/>
+                </Tab>
             </TabPane>
         </VBox>
     </center>

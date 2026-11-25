@@ -101,8 +101,40 @@ Abre **Reportes** desde la barra superior.
 - **Horario** lista las sesiones de una versión y permite filtrarlas por grupo, docente o aula.
 - **Carga docente** compara las horas asignadas con la disponibilidad semanal del docente. Cuando no hay disponibilidad registrada, el uso aparece como **—**.
 - **Ocupación de aulas** muestra las sesiones y horas reservadas de cada aula por versión y día o semana. El porcentaje usa una jornada de **07:00 a 21:00** de lunes a domingo. Para aulas en mantenimiento o inactivas se muestra **—**.
+- **Cobertura por grupo** compara las sesiones requeridas y programadas en cada versión. Muestra las pendientes y permite filtrar los grupos incompletos.
 
-Cada pestaña exporta su selección con JasperReports a **PDF** o **Excel (.xlsx)**. Puedes editar los diseños `.jrxml` con Jaspersoft Studio 7.0.x. Consulta la [guía de reportes](docs/REPORTES.md) para crear o modificar un diseño.
+Cada pestaña permite **Actualizar**, abrir una **Vista previa** paginada para impresión y exportar su selección con JasperReports a **PDF** o **Excel (.xlsx)**. Puedes editar los diseños `.jrxml` con Jaspersoft Studio 7.0.x. Consulta la [guía de reportes](docs/REPORTES.md) para crear o modificar un diseño.
+
+### Probar las dos API
+
+#### API propia de consulta de horarios
+
+1. Inicia primero Aula Equilibrio con tu base local para que existan las tablas y alguna versión de horario. Agrega `AULA_API_TOKEN` con un valor propio en tu `.env`. El puerto predeterminado es `8080` y puedes cambiarlo con `AULA_API_PORT`.
+2. En otra terminal, desde la raíz del repositorio, inicia el servidor REST local con Java 21:
+
+   ```powershell
+   .\mvnw.cmd -Papi-horarios compile exec:java
+   ```
+
+   En Linux o macOS usa `./mvnw -Papi-horarios compile exec:java`.
+
+3. En Postman elige el método **GET** y en **Authorization → Bearer Token** pega el valor de `AULA_API_TOKEN`.
+
+   | URL | Respuesta |
+   | --- | --- |
+   | `http://127.0.0.1:8080/api/horarios/versiones` | Lista las versiones y sus identificadores. |
+   | `http://127.0.0.1:8080/api/horarios/versiones/1/sesiones` | Devuelve las sesiones con intervalo definido en la versión. Sustituye `1` por el ID de la primera respuesta. |
+   | `http://127.0.0.1:8080/api/horarios/versiones/1/sesiones?grupoId=7` | Filtra por grupo. También acepta `docenteId` y `aulaId`, combinables. Usa los IDs que aparecen en la respuesta sin filtro. |
+
+La API escucha en `127.0.0.1` y consulta la misma base PostgreSQL en modo de lectura. Puedes iniciarla desde IntelliJ ejecutando `ScheduleApiLauncher` con el proyecto como directorio de trabajo. Para demostrar la integración, guarda una sesión desde JavaFX y repite la consulta en Postman. Sin token válido responde `401`, con filtros inválidos `400` y para una versión inexistente `404`.
+
+#### Consumo de la API de Resend
+
+1. Crea una clave de envío en Resend. En tu `.env` local agrega `RESEND_API_KEY` y `RESEND_FROM`. Para la prueba usa `RESEND_FROM=onboarding@resend.dev` y pon el correo de tu cuenta de Resend en un docente de demostración. Para enviar a otros destinatarios configura un remitente de un dominio verificado en Resend.
+2. Entra a Aula Equilibrio como **Administrador** o **Coordinador**. Ve a **Reportes → Horario**, selecciona una versión con sesiones y filtra por **Docente**.
+3. Pulsa **Enviar por correo**, revisa la dirección y confirma. El sistema prepara el PDF con las sesiones filtradas, llama a Resend y muestra su identificador si el servicio acepta el envío. Para una prueba real, abre el correo de demostración y comprueba el adjunto.
+
+Los valores de la clave de Resend y el token REST van en `.env` local. `.env.example` contiene solamente los nombres de las variables. La generación y exportación de reportes funciona con la configuración de PostgreSQL aunque Resend aún no esté configurado.
 
 ### Docentes y disponibilidad
 

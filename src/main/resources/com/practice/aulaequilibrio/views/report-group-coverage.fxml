@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml" spacing="10" styleClass="panel"
+      fx:controller="com.practice.aulaequilibrio.controller.GroupCoverageReportController">
+    <Label text="Cobertura por grupo" styleClass="card-title"/>
+    <Label text="Contrasta las sesiones programadas con las requeridas e identifica los grupos pendientes."
+           wrapText="true" styleClass="muted"/>
+    <FlowPane hgap="7" vgap="6">
+        <ComboBox fx:id="version" promptText="Versión de horario" prefWidth="240"/>
+        <CheckBox fx:id="onlyPending" text="Solo pendientes"/>
+        <Button fx:id="refreshButton" text="Actualizar" onAction="#refresh"/>
+        <Button fx:id="previewButton" text="Vista previa" onAction="#preview"/>
+        <Button fx:id="pdfButton" text="Exportar PDF" onAction="#exportPdf" styleClass="primary"/>
+        <Button fx:id="excelButton" text="Exportar Excel" onAction="#exportExcel"/>
+    </FlowPane>
+    <TableView fx:id="groups" VBox.vgrow="ALWAYS">
+        <placeholder><Label text="No hay grupos con asignatura para esta selección."/></placeholder>
+        <columns>
+            <TableColumn fx:id="groupColumn" text="Grupo" prefWidth="110"/>
+            <TableColumn fx:id="subjectColumn" text="Asignatura" prefWidth="240"/>
+            <TableColumn fx:id="requiredColumn" text="Requeridas" prefWidth="100"/>
+            <TableColumn fx:id="scheduledColumn" text="Programadas" prefWidth="110"/>
+            <TableColumn fx:id="pendingColumn" text="Pendientes" prefWidth="100"/>
+            <TableColumn fx:id="coverageColumn" text="Cobertura" prefWidth="100"/>
+        </columns>
+    </TableView>
+    <Label fx:id="status" wrapText="true" styleClass="muted"/>
+</VBox>

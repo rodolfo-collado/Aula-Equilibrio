@@ -3,6 +3,7 @@ package com.practice.aulaequilibrio.controller;
 import com.practice.aulaequilibrio.model.DashboardData.VersionOption;
 import com.practice.aulaequilibrio.model.ScheduleReportData.Option;
 import com.practice.aulaequilibrio.model.ScheduleReportData.RoomOccupancyRow;
+import com.practice.aulaequilibrio.report.ReportEngine.Document;
 import com.practice.aulaequilibrio.report.ReportEngine.Format;
 import com.practice.aulaequilibrio.service.ScheduleReportService;
 import com.practice.aulaequilibrio.util.ErrorMessages;
@@ -33,7 +34,7 @@ public class RoomOccupancyReportController {
 
     @FXML private ComboBox<VersionOption> version;
     @FXML private ComboBox<Option> day;
-    @FXML private Button refreshButton, pdfButton, excelButton;
+    @FXML private Button refreshButton, previewButton, pdfButton, excelButton;
     @FXML private TableView<RoomOccupancyRow> rooms;
     @FXML private TableColumn<RoomOccupancyRow, String> roomColumn, typeColumn, capacityColumn, stateColumn,
             sessionsColumn, hoursColumn, usageColumn;
@@ -63,6 +64,7 @@ public class RoomOccupancyReportController {
         });
         rooms.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         var cannotExport = busy.or(Bindings.isEmpty(rooms.getItems()));
+        previewButton.disableProperty().bind(cannotExport);
         pdfButton.disableProperty().bind(cannotExport);
         excelButton.disableProperty().bind(cannotExport);
         refreshButton.disableProperty().bind(busy);
@@ -101,13 +103,20 @@ public class RoomOccupancyReportController {
     @FXML private void exportPdf() { export(Format.PDF); }
     @FXML private void exportExcel() { export(Format.XLSX); }
 
+    @FXML private void preview() {
+        ReportActions.preview(rooms, document());
+    }
+
     private void export(Format format) {
+        ReportActions.export(rooms, document(), format);
+    }
+
+    private Document document() {
         var selected = version.getValue();
         var period = day.getValue();
-        if (selected == null || busy.get() || rooms.getItems().isEmpty()) return;
         String subtitle = "Versión: " + selected.name() + " · " + period.label();
-        ReportActions.export(rooms, DESIGN, Map.of("TITULO", "Ocupación de aulas", "SUBTITULO", subtitle),
-                ScheduleReportService.roomOccupancyFields(List.copyOf(rooms.getItems()), period.id()), format,
+        return new Document(DESIGN, Map.of("TITULO", "Ocupación de aulas", "SUBTITULO", subtitle),
+                ScheduleReportService.roomOccupancyFields(List.copyOf(rooms.getItems()), period.id()),
                 "ocupación de aulas " + selected.name() + " " + period.label());
     }
 

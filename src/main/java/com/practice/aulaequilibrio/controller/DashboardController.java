@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 
 public class DashboardController {
     @FXML private ScrollPane dashboard;
-    @FXML private TilePane metrics;
+    @FXML private GridPane metrics;
     @FXML private SplitPane detailPanels;
     @FXML private ComboBox<VersionOption> version;
     @FXML private Button refreshButton;
@@ -34,7 +34,6 @@ public class DashboardController {
     @FXML private TableColumn<FacultyRow, String> facultyName;
     @FXML private TableColumn<FacultyRow, Long> careers, subjects, groups, classrooms, assignments;
     @FXML private VBox ranking, notices;
-    @FXML private TilePane piePanels;
     @FXML private PieChart roomPie, coveragePie;
     @FXML private BarChart<String, Number> weekChart;
     @FXML private Label roomChartEmpty, coverageChartEmpty, weekChartEmpty;
@@ -63,15 +62,32 @@ public class DashboardController {
         });
         error.managedProperty().bind(error.visibleProperty());
         error.setVisible(false);
+        arrangeMetrics(3);
+        metrics.widthProperty().addListener((obs, before, width) -> {
+            double available = width.doubleValue();
+            arrangeMetrics(available >= 1180 ? 6 : available >= 740 ? 3 : available >= 450 ? 2 : 1);
+        });
         dashboard.viewportBoundsProperty().addListener((obs, before, bounds) -> {
             double width = Math.max(1, bounds.getWidth() - 44);
-            int columns = width >= 1180 ? 6 : width >= 800 ? 3 : width >= 500 ? 2 : 1;
-            metrics.setPrefTileWidth(Math.max(1, (width - 12 * (columns - 1)) / columns));
-            piePanels.setPrefTileWidth(Math.max(1, (width - (width >= 650 ? 12 : 0)) / (width >= 650 ? 2 : 1)));
             boolean narrow = width < 800;
             detailPanels.setOrientation(narrow ? Orientation.VERTICAL : Orientation.HORIZONTAL);
             detailPanels.setPrefHeight(narrow ? 740 : 400);
         });
+    }
+
+    private void arrangeMetrics(int columns) {
+        if (metrics.getColumnConstraints().size() == columns) return;
+        metrics.getColumnConstraints().clear();
+        for (int i = 0; i < columns; i++) {
+            ColumnConstraints column = new ColumnConstraints();
+            column.setPercentWidth(100.0 / columns);
+            column.setMinWidth(0);
+            metrics.getColumnConstraints().add(column);
+        }
+        for (int i = 0; i < metrics.getChildren().size(); i++) {
+            GridPane.setColumnIndex(metrics.getChildren().get(i), i % columns);
+            GridPane.setRowIndex(metrics.getChildren().get(i), i / columns);
+        }
     }
 
     @FXML public void refresh() {
