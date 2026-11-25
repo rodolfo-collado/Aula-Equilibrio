@@ -29,57 +29,61 @@
                 <Label fx:id="updated" styleClass="muted" wrapText="true"/>
                 <Label fx:id="error" styleClass="field-error" wrapText="true"/>
             </VBox>
-            <TilePane fx:id="metrics" hgap="12" vgap="12" prefColumns="3" prefTileWidth="260" tileAlignment="TOP_LEFT">
-                <VBox spacing="5" maxWidth="Infinity" styleClass="dashboard-metric">
-                    <Label text="Facultades" styleClass="muted"/>
+            <GridPane fx:id="metrics" minWidth="0" hgap="12" vgap="12">
+                <VBox spacing="5" minWidth="0" maxWidth="Infinity" styleClass="dashboard-metric">
+                    <Label text="Facultades" wrapText="true" styleClass="muted"/>
                     <Label fx:id="facultyCount" text="—" styleClass="dashboard-number"/>
                     <Label fx:id="facultyDetail" text="Estructura académica" wrapText="true" styleClass="muted"/>
                 </VBox>
-                <VBox spacing="5" maxWidth="Infinity" styleClass="dashboard-metric">
-                    <Label text="Asignaturas" styleClass="muted"/>
+                <VBox spacing="5" minWidth="0" maxWidth="Infinity" styleClass="dashboard-metric">
+                    <Label text="Asignaturas" wrapText="true" styleClass="muted"/>
                     <Label fx:id="subjectCount" text="—" styleClass="dashboard-number"/>
                     <Label text="Asignaturas únicas del catálogo" wrapText="true" styleClass="muted"/>
                 </VBox>
-                <VBox spacing="5" maxWidth="Infinity" styleClass="dashboard-metric">
-                    <Label text="Grupos" styleClass="muted"/>
+                <VBox spacing="5" minWidth="0" maxWidth="Infinity" styleClass="dashboard-metric">
+                    <Label text="Grupos" wrapText="true" styleClass="muted"/>
                     <Label fx:id="groupCount" text="—" styleClass="dashboard-number"/>
                     <Label text="Oferta de grupos registrada" wrapText="true" styleClass="muted"/>
                 </VBox>
-                <VBox spacing="5" maxWidth="Infinity" styleClass="dashboard-metric">
-                    <Label text="Docentes activos" styleClass="muted"/>
+                <VBox spacing="5" minWidth="0" maxWidth="Infinity" styleClass="dashboard-metric">
+                    <Label text="Docentes activos" wrapText="true" styleClass="muted"/>
                     <Label fx:id="teacherCount" text="—" styleClass="dashboard-number"/>
                     <Label fx:id="teacherDetail" wrapText="true" styleClass="muted"/>
                 </VBox>
-                <VBox spacing="5" maxWidth="Infinity" styleClass="dashboard-metric">
-                    <Label text="Aulas disponibles / total" styleClass="muted"/>
+                <VBox spacing="5" minWidth="0" maxWidth="Infinity" styleClass="dashboard-metric">
+                    <Label text="Aulas disponibles / total" wrapText="true" styleClass="muted"/>
                     <Label fx:id="roomCount" text="—" styleClass="dashboard-number"/>
                     <Label fx:id="roomDetail" wrapText="true" styleClass="muted"/>
                 </VBox>
-                <VBox spacing="5" maxWidth="Infinity" styleClass="dashboard-metric,dashboard-metric-accent">
-                    <Label text="Cobertura de sesiones" styleClass="muted"/>
+                <VBox spacing="5" minWidth="0" maxWidth="Infinity" styleClass="dashboard-metric,dashboard-metric-accent">
+                    <Label text="Cobertura de sesiones" wrapText="true" styleClass="muted"/>
                     <Label fx:id="coverageCount" text="—" styleClass="dashboard-number"/>
                     <ProgressBar fx:id="coverage" progress="0" maxWidth="Infinity"/>
                     <Label fx:id="coverageDetail" wrapText="true" styleClass="muted"/>
                 </VBox>
-            </TilePane>
-            <TilePane fx:id="piePanels" hgap="12" vgap="12" prefColumns="2" prefTileWidth="410">
-                <VBox spacing="7" maxWidth="Infinity" styleClass="panel">
-                    <Label text="Estado de las aulas" styleClass="card-title"/>
+            </GridPane>
+            <GridPane fx:id="piePanels" minWidth="0" hgap="12">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="0" percentWidth="50"/>
+                    <ColumnConstraints minWidth="0" percentWidth="50"/>
+                </columnConstraints>
+                <VBox spacing="7" minWidth="0" maxWidth="Infinity" GridPane.columnIndex="0" styleClass="panel">
+                    <Label text="Estado de las aulas" wrapText="true" styleClass="card-title"/>
                     <Label text="Catálogo completo · pulsa una porción para revisar aulas." wrapText="true" styleClass="muted"/>
                     <StackPane>
                         <PieChart fx:id="roomPie" prefHeight="265" labelsVisible="false" animated="false" legendSide="BOTTOM"/>
                         <Label fx:id="roomChartEmpty" text="Todavía no hay aulas registradas." mouseTransparent="true" styleClass="muted"/>
                     </StackPane>
                 </VBox>
-                <VBox spacing="7" maxWidth="Infinity" styleClass="panel">
-                    <Label text="Sesiones cubiertas y pendientes" styleClass="card-title"/>
+                <VBox spacing="7" minWidth="0" maxWidth="Infinity" GridPane.columnIndex="1" styleClass="panel">
+                    <Label text="Sesiones cubiertas y pendientes" wrapText="true" styleClass="card-title"/>
                     <Label text="Versión seleccionada · cada grupo cuenta hasta su requerimiento." wrapText="true" styleClass="muted"/>
                     <StackPane>
                         <PieChart fx:id="coveragePie" prefHeight="265" labelsVisible="false" animated="false" legendSide="BOTTOM"/>
                         <Label fx:id="coverageChartEmpty" text="Sin sesiones requeridas o sin versión." mouseTransparent="true" styleClass="muted"/>
                     </StackPane>
                 </VBox>
-            </TilePane>
+            </GridPane>
             <VBox spacing="7" styleClass="panel">
                 <Label text="Distribución semanal de sesiones" styleClass="card-title"/>
                 <Label text="Cantidad de asignaciones por día en esta versión. Pulsa una barra para abrir Horarios." wrapText="true" styleClass="muted"/>

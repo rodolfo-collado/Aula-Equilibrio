@@ -1,8 +1,10 @@
 # Reportes con JasperReports
 
-La ventana **Reportes** (barra superior) tiene una pestaña por reporte. Cada pestaña muestra una vista previa con filtros en JavaFX y genera el documento final con JasperReports en **PDF** o **Excel (.xlsx)**. Después de guardar, el archivo se abre con la aplicación predeterminada del sistema.
+La ventana **Reportes** (barra superior) tiene una pestaña por reporte. Cada pestaña tiene filtros en JavaFX y la opción **Vista previa** para revisar todas las páginas del PDF antes de guardarlo. Los reportes se generan con JasperReports y se pueden exportar en **PDF** o **Excel (.xlsx)**.
 
 En **Ocupación de aulas**, selecciona una versión y elige un día o **Semana completa**. El reporte muestra todas las aulas, incluidas las que tienen cero sesiones. El porcentaje divide las horas reservadas entre 14 horas para un día o 98 para la semana completa. Las aulas en mantenimiento o inactivas muestran **—**. Solo se cuentan las sesiones con intervalos definidos.
+
+En **Cobertura por grupo**, selecciona una versión para consultar las sesiones requeridas, programadas y pendientes de cada grupo. La opción **Solo pendientes** muestra los grupos con sesiones por programar.
 
 ## Herramientas
 
@@ -40,10 +42,14 @@ En **Ocupación de aulas**, selecciona una versión y elige un día o **Semana c
 6. En el controlador de la pestaña llama a:
 
    ```java
-   ReportActions.export(tabla, "/com/practice/aulaequilibrio/reports/ocupacion-aulas.jrxml",
+   var documento = new ReportEngine.Document(
+           "/com/practice/aulaequilibrio/reports/ocupacion-aulas.jrxml",
            Map.of("TITULO", "Ocupación de aulas", "SUBTITULO", "Versión: " + version),
            ScheduleReportService.roomOccupancyFields(List.copyOf(tabla.getItems()), dia),
-           Format.PDF, "ocupacion aulas");
+           "ocupacion aulas");
+   // Vincula cada acción a su propio botón.
+   ReportActions.preview(tabla, documento);
+   ReportActions.export(tabla, documento, Format.PDF);
    ```
 
 7. Agrega una prueba en `ReportDesignsTest` que llene el diseño con dos o tres filas y compruebe los textos con `ReportEngineTest.texts(print)`.

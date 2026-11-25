@@ -2,6 +2,7 @@ package com.practice.aulaequilibrio.controller;
 
 import com.practice.aulaequilibrio.model.DashboardData.VersionOption;
 import com.practice.aulaequilibrio.model.ScheduleReportData.TeacherLoadRow;
+import com.practice.aulaequilibrio.report.ReportEngine.Document;
 import com.practice.aulaequilibrio.report.ReportEngine.Format;
 import com.practice.aulaequilibrio.service.ScheduleReportService;
 import com.practice.aulaequilibrio.util.ErrorMessages;
@@ -25,7 +26,7 @@ public class TeacherLoadReportController {
 
     @FXML private ComboBox<VersionOption> version;
     @FXML private CheckBox onlyActive;
-    @FXML private Button refreshButton, pdfButton, excelButton;
+    @FXML private Button refreshButton, previewButton, pdfButton, excelButton;
     @FXML private TableView<TeacherLoadRow> teachers;
     @FXML private TableColumn<TeacherLoadRow, String> nameColumn, stateColumn, sessionsColumn,
             assignedColumn, availableColumn, usageColumn;
@@ -47,7 +48,9 @@ public class TeacherLoadReportController {
         text(usageColumn, row -> row.usage() == null ? "—"
                 : String.format(Locale.ROOT, "%.0f%%", row.usage() * 100));
         teachers.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        var noRows = Bindings.isEmpty(teachers.getItems());
+        var noRows = Bindings.isEmpty(teachers.getItems()).or(refreshButton.disabledProperty());
+        version.disableProperty().bind(refreshButton.disabledProperty());
+        previewButton.disableProperty().bind(noRows);
         pdfButton.disableProperty().bind(noRows);
         excelButton.disableProperty().bind(noRows);
         version.valueProperty().addListener((obs, before, after) -> {
@@ -94,12 +97,19 @@ public class TeacherLoadReportController {
         export(Format.XLSX);
     }
 
+    @FXML private void preview() {
+        ReportActions.preview(teachers, document());
+    }
+
     private void export(Format format) {
+        ReportActions.export(teachers, document(), format);
+    }
+
+    private Document document() {
         String versionName = version.getValue() == null ? "" : version.getValue().name();
         String subtitle = "Versión: " + versionName + (onlyActive.isSelected() ? " · Solo docentes activos" : "");
-        ReportActions.export(teachers, DESIGN, Map.of("TITULO", "Carga docente", "SUBTITULO", subtitle),
-                ScheduleReportService.teacherLoadFields(List.copyOf(teachers.getItems())), format,
-                "carga docente " + versionName);
+        return new Document(DESIGN, Map.of("TITULO", "Carga docente", "SUBTITULO", subtitle),
+                ScheduleReportService.teacherLoadFields(List.copyOf(teachers.getItems())), "carga docente " + versionName);
     }
 
     static String hours(long minutes) {
@@ -117,6 +127,7 @@ public class TeacherLoadReportController {
             apply.accept(task.getValue());
         });
         task.setOnFailed(event -> {
+            teachers.getItems().clear();
             refreshButton.setDisable(false);
             status.setText(ErrorMessages.forUser(task.getException()));
         });

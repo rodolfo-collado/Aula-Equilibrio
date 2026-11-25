@@ -1,6 +1,7 @@
 package com.practice.aulaequilibrio.report;
 
 import com.practice.aulaequilibrio.model.ClassroomStatus;
+import com.practice.aulaequilibrio.model.ScheduleReportData.GroupCoverageRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.RoomOccupancyRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.SessionRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.TeacherLoadRow;
@@ -53,6 +54,20 @@ class ReportDesignsTest {
         var print = ReportEngine.fill(REPORTS + "ocupacion-aulas.jrxml",
                 Map.of("TITULO", "Ocupación de aulas", "SUBTITULO", "Versión Demo · Lunes"), fields);
         assertTrue(ReportEngineTest.texts(print).containsAll(List.of("Ocupación de aulas", "A-101", "A-102", "—")));
+        assertEquals("%PDF", new String(ReportEngine.export(print, Format.PDF), 0, 4, StandardCharsets.US_ASCII));
+        assertEquals("PK", new String(ReportEngine.export(print, Format.XLSX), 0, 2, StandardCharsets.US_ASCII));
+    }
+
+    @Test void groupCoverageDesignShowsGroupsWithoutScheduledSessions() throws Exception {
+        var groups = List.of(new GroupCoverageRow("G1", "Programación", 4, 3),
+                new GroupCoverageRow("G2", "Cálculo", 2, 0));
+        var fields = ScheduleReportService.groupCoverageFields(groups);
+        assertEquals(1L, fields.getFirst().get("pendientes"));
+        assertEquals(2L, fields.getLast().get("pendientes"));
+        var print = ReportEngine.fill(REPORTS + "cobertura-grupos.jrxml",
+                Map.of("TITULO", "Cobertura por grupo", "SUBTITULO", "Versión Demo"), fields);
+        assertTrue(ReportEngineTest.texts(print).containsAll(
+                List.of("Cobertura por grupo", "G1", "G2", "Programación", "Cálculo", "75%", "0%")));
         assertEquals("%PDF", new String(ReportEngine.export(print, Format.PDF), 0, 4, StandardCharsets.US_ASCII));
         assertEquals("PK", new String(ReportEngine.export(print, Format.XLSX), 0, 2, StandardCharsets.US_ASCII));
     }

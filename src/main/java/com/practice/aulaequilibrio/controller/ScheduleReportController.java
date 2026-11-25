@@ -1,11 +1,16 @@
 package com.practice.aulaequilibrio.controller;
 
 import com.practice.aulaequilibrio.model.DashboardData.VersionOption;
+import com.practice.aulaequilibrio.model.Permission;
 import com.practice.aulaequilibrio.model.ScheduleReportData.Option;
 import com.practice.aulaequilibrio.model.ScheduleReportData.Scope;
 import com.practice.aulaequilibrio.model.ScheduleReportData.SessionRow;
+import com.practice.aulaequilibrio.report.ReportEngine.Document;
 import com.practice.aulaequilibrio.report.ReportEngine.Format;
+import com.practice.aulaequilibrio.service.ScheduleEmailService;
 import com.practice.aulaequilibrio.service.ScheduleReportService;
+import com.practice.aulaequilibrio.util.Dialogs;
+import com.practice.aulaequilibrio.util.UiAccess;
 import com.practice.aulaequilibrio.util.ErrorMessages;
 import com.practice.aulaequilibrio.util.ReportActions;
 import javafx.beans.binding.Bindings;
@@ -13,6 +18,7 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,16 +32,18 @@ public class ScheduleReportController {
     private static final Option ALL = new Option(null, "Todos");
     private static final String DESIGN = "/com/practice/aulaequilibrio/reports/horario.jrxml";
 
+    @FXML private VBox root;
     @FXML private ComboBox<VersionOption> version;
     @FXML private ComboBox<Scope> scope;
     @FXML private ComboBox<Option> resource;
-    @FXML private Button refreshButton, pdfButton, excelButton;
+    @FXML private Button refreshButton, previewButton, pdfButton, excelButton, emailButton;
     @FXML private TableView<SessionRow> sessions;
     @FXML private TableColumn<SessionRow, String> dayColumn, startColumn, endColumn, subjectColumn,
             groupColumn, teacherColumn, classroomColumn;
     @FXML private Label empty, status;
 
     private final ScheduleReportService service;
+    private final ScheduleEmailService email = new ScheduleEmailService();
     private List<SessionRow> loaded = List.of();
     private boolean applying;
 
@@ -53,9 +61,15 @@ public class ScheduleReportController {
         sessions.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         scope.getItems().setAll(Scope.values());
         scope.getSelectionModel().selectFirst();
-        var noRows = Bindings.isEmpty(sessions.getItems());
+        var noRows = Bindings.isEmpty(sessions.getItems()).or(refreshButton.disabledProperty());
+        version.disableProperty().bind(refreshButton.disabledProperty());
+        previewButton.disableProperty().bind(noRows);
         pdfButton.disableProperty().bind(noRows);
         excelButton.disableProperty().bind(noRows);
+        UiAccess.apply(root, Permission.SEND_SCHEDULE_EMAIL);
+        emailButton.disableProperty().bind(noRows.or(Bindings.createBooleanBinding(
+                () -> scope.getValue() != Scope.TEACHER || resource.getValue() == null || resource.getValue().id() == null,
+                scope.valueProperty(), resource.valueProperty())));
         version.valueProperty().addListener((obs, before, after) -> {
             if (!applying) loadSessions();
         });
@@ -113,12 +127,32 @@ public class ScheduleReportController {
         export(Format.XLSX);
     }
 
+    @FXML private void preview() {
+        ReportActions.preview(sessions, document());
+    }
+
+    @FXML private void sendEmail() {
+        Option teacher = resource.getValue();
+        String versionName = version.getValue().name();
+        Document report = document();
+        ReportActions.run(root, "No se pudo preparar el envío", () -> email.recipient(teacher.id()), recipient ->
+                Dialogs.confirm(root, "Enviar horario semanal",
+                        "Docente: " + teacher.label() + "\nCorreo: " + recipient + "\nVersión: " + versionName,
+                        () -> ReportActions.run(root, "No se pudo enviar el horario",
+                                () -> email.send(teacher.id(), recipient, versionName, report), id ->
+                                        Dialogs.info(root, "Horario enviado", "Resend aceptó el envío. ID: " + id))));
+    }
+
     private void export(Format format) {
+        ReportActions.export(sessions, document(), format);
+    }
+
+    private Document document() {
         String versionName = version.getValue() == null ? "" : version.getValue().name();
         String subtitle = "Versión: " + versionName + (resource.getValue() == ALL ? ""
                 : " · " + scope.getValue() + ": " + resource.getValue().label());
-        ReportActions.export(sessions, DESIGN, Map.of("TITULO", "Horario semanal", "SUBTITULO", subtitle),
-                ScheduleReportService.scheduleFields(List.copyOf(sessions.getItems())), format, "horario " + versionName);
+        return new Document(DESIGN, Map.of("TITULO", "Horario semanal", "SUBTITULO", subtitle),
+                ScheduleReportService.scheduleFields(List.copyOf(sessions.getItems())), "horario " + versionName);
     }
 
     private <T> void run(Callable<T> work, Consumer<T> apply) {
@@ -132,6 +166,7 @@ public class ScheduleReportController {
             apply.accept(task.getValue());
         });
         task.setOnFailed(event -> {
+            sessions.getItems().clear();
             refreshButton.setDisable(false);
             status.setText(ErrorMessages.forUser(task.getException()));
         });

@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns:fx="http://javafx.com/fxml" spacing="10" styleClass="panel"
+<VBox fx:id="root" xmlns:fx="http://javafx.com/fxml" spacing="10" styleClass="panel"
       fx:controller="com.practice.aulaequilibrio.controller.ScheduleReportController">
     <Label text="Horario semanal" styleClass="card-title"/>
     <FlowPane hgap="7" vgap="6">
@@ -11,8 +11,10 @@
         <ComboBox fx:id="scope" promptText="Ver por" prefWidth="130"/>
         <ComboBox fx:id="resource" promptText="Todos" prefWidth="210"/>
         <Button fx:id="refreshButton" text="Actualizar" onAction="#refresh"/>
+        <Button fx:id="previewButton" text="Vista previa" onAction="#preview"/>
         <Button fx:id="pdfButton" text="Exportar PDF" onAction="#exportPdf" styleClass="primary"/>
         <Button fx:id="excelButton" text="Exportar Excel" onAction="#exportExcel"/>
+        <Button fx:id="emailButton" text="Enviar por correo" onAction="#sendEmail" styleClass="requires-edit"/>
     </FlowPane>
     <TableView fx:id="sessions" VBox.vgrow="ALWAYS">
         <placeholder><Label fx:id="empty" text="Selecciona una versión de horario."/></placeholder>

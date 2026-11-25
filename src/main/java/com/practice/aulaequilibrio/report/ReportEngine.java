@@ -24,6 +24,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,6 +32,13 @@ public final class ReportEngine {
     private static final Map<String, JasperReport> COMPILED = new ConcurrentHashMap<>();
 
     public enum Format { PDF, XLSX }
+
+    public record Document(String design, Map<String, Object> parameters,
+                           List<Map<String, ?>> rows, String name) {
+        public byte[] bytes(Format format) throws JRException {
+            return export(fill(design, parameters, rows), format);
+        }
+    }
 
     private ReportEngine() {
     }

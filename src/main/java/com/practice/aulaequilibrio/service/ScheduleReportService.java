@@ -2,6 +2,7 @@ package com.practice.aulaequilibrio.service;
 
 import com.practice.aulaequilibrio.dao.ScheduleReportDAO;
 import com.practice.aulaequilibrio.model.DashboardData.VersionOption;
+import com.practice.aulaequilibrio.model.ScheduleReportData.GroupCoverageRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.Option;
 import com.practice.aulaequilibrio.model.ScheduleReportData.RoomOccupancyRow;
 import com.practice.aulaequilibrio.model.ScheduleReportData.Scope;
@@ -45,6 +46,18 @@ public class ScheduleReportService {
     public List<RoomOccupancyRow> roomOccupancy(Integer versionId, Integer day) {
         access.require(Permission.READ_ACADEMIC);
         return versionId == null ? List.of() : dao.roomOccupancy(versionId, day);
+    }
+
+    public List<GroupCoverageRow> groupCoverage(Integer versionId) {
+        access.require(Permission.READ_ACADEMIC);
+        return versionId == null ? List.of() : dao.groupCoverage(versionId);
+    }
+
+    public static List<Map<String, ?>> groupCoverageFields(List<GroupCoverageRow> rows) {
+        return rows.stream().<Map<String, ?>>map(row -> Map.of(
+                "grupo", row.group(), "asignatura", row.subject(),
+                "requeridas", row.required(), "programadas", row.scheduled(),
+                "pendientes", row.pending(), "cobertura", row.coverage() / 100.0)).toList();
     }
 
     public static long roomPeriodMinutes(Integer day) {

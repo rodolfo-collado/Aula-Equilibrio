@@ -19,17 +19,21 @@ public final class HibernateUtil {
 
     public static synchronized SessionFactory getSessionFactory() {
         if (sessionFactory == null || sessionFactory.isClosed()) {
-            sessionFactory = buildSessionFactory();
+            sessionFactory = buildSessionFactory(false);
         }
         return sessionFactory;
     }
 
-    private static SessionFactory buildSessionFactory() {
+    public static SessionFactory openReadOnlyFactory() {
+        return buildSessionFactory(true);
+    }
+
+    private static SessionFactory buildSessionFactory(boolean readOnly) {
         Dotenv dotenv = Dotenv.configure()
                 .ignoreIfMissing()
                 .load();
 
-        StandardServiceRegistry registry =
+        StandardServiceRegistryBuilder builder =
                 new StandardServiceRegistryBuilder()
                         .configure()
                         .applySetting(
@@ -43,15 +47,16 @@ public final class HibernateUtil {
                         .applySetting(
                                 "jakarta.persistence.jdbc.password",
                                 required(dotenv, "DB_PASSWORD")
-                        )
-                        .build();
+                        );
+        if (readOnly) builder.applySetting("hibernate.hbm2ddl.auto", "validate");
+        StandardServiceRegistry registry = builder.build();
 
         try {
             SessionFactory factory = new MetadataSources(registry)
                     .buildMetadata()
                     .buildSessionFactory();
             try {
-                executeScript(factory, "migrate_time_intervals.sql");
+                if (!readOnly) executeScript(factory, "migrate_time_intervals.sql");
                 return factory;
             } catch (RuntimeException exception) {
                 factory.close();

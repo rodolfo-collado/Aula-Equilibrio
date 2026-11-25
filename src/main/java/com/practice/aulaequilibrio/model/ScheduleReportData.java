@@ -31,6 +31,11 @@ public final class ScheduleReportData {
         }
     }
 
+    public record GroupCoverageRow(String group, String subject, int required, long scheduled) {
+        public long pending() { return Math.max(0, required - scheduled); }
+        public long coverage() { return required == 0 ? 0 : Math.round(100.0 * (required - pending()) / required); }
+    }
+
     public enum Scope {
         GROUP("Grupo"), TEACHER("Docente"), CLASSROOM("Aula");
 

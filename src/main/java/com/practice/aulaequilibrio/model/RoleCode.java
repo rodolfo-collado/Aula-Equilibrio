@@ -5,7 +5,7 @@ import static com.practice.aulaequilibrio.model.Permission.*;
 
 public enum RoleCode {
     ADMINISTRADOR("Administrador", Set.of(Permission.values())),
-    COORDINADOR("Coordinador", Set.of(READ_ACADEMIC, EDIT_STRUCTURE, EDIT_TEACHERS, EDIT_OFFER, EDIT_CLASSROOMS, EDIT_SCHEDULES)),
+    COORDINADOR("Coordinador", Set.of(READ_ACADEMIC, EDIT_STRUCTURE, EDIT_TEACHERS, EDIT_OFFER, EDIT_CLASSROOMS, EDIT_SCHEDULES, SEND_SCHEDULE_EMAIL)),
     PLANIFICADOR("Planificador", Set.of(READ_ACADEMIC, EDIT_SCHEDULES)),
     CONSULTA("Consulta", Set.of(READ_ACADEMIC)),
     AUDITOR("Auditor", Set.of(READ_ACADEMIC, VIEW_AUDIT));
